@@ -1,0 +1,15 @@
+# Logs
+logs
+*.log
+
+# temp folders
+*git_checkout*
+
+# creds
+*creds*
+
+# Rendered Output Files
+*output*
+
+# ansible output files for sysdig
+monitoring/sysdig/operator/sysdig-monitor/output/*

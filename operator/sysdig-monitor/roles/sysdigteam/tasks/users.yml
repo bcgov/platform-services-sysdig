@@ -5,6 +5,8 @@
   set_fact: 
     user_exists: false
 
+# Ignoring outputs to shorten log output
+# if there is a match, should see a log as ok: [localhost] => (item=None)
 - name: Lookup user
   set_fact: 
     user_data: "{{ item }}"

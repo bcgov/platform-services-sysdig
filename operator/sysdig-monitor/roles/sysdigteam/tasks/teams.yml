@@ -2,6 +2,8 @@
 # Lookup Team
 - debug: msg=" Looking up team - {{ container_team_name }}"
 
+# Ignoring outputs to shorten log output
+# if there is a match, should see a log as ok: [localhost] => (item=None)
 - set_fact: 
     container_team_data: "{{ item }}"
     container_team_exists: true

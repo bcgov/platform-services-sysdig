@@ -12,10 +12,21 @@
 # Get list of existing teams and users
 - include_tasks: fetch_data.yml
 
+# Set list of team users and SA account
+- name: Set the list of users for team
+  set_fact: 
+    team_user_list: "{{ team.users }}"
+
+- name: Add SA to team user list when not included yet
+  set_fact: 
+    team_user_list: "{{ team.users | default([]) + [ { 'name': sysdig_team_sa.name, 'role': sysdig_team_sa.role } ] }}"
+  when: sysdig_team_sa.name not in team.users|join('|')
+
+
 # Find existing users or create new as required
 - include_tasks: users.yml
   with_items: 
-    - "{{ team.users }}"
+    - "{{ team_user_list }}"
   loop_control: 
     loop_var: team_user
 

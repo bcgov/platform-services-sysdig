@@ -1,0 +1,16 @@
+---
+# this is for running the playbook locally to test out changes!
+# make sure to insert the correct Sysdig API token in vars/local-test.yml
+# To run:
+# export SYSDIG_TOKEN=xxx
+# ansible-playbook local-test-run.yaml
+- hosts: localhost
+  gather_facts: no
+  vars_files: 
+    - vars/local-test.yaml
+  tasks:
+  - name: abc
+    set_fact:
+      ansible_operator_meta:
+        namespace: shellyxuehan-tools
+  - include_tasks: tasks/main.yml

@@ -23,7 +23,7 @@
     body: "{{ lookup('template', 'templates/new_container_team.json.j2') }}"
     body_format: json
     status_code: 201
-  register: team_output
+  register: team_container_creation_output
   when: container_team_exists == false
 
 # Update Team if Exists Updates
@@ -37,5 +37,5 @@
     body: "{{ lookup('template', 'templates/existing_container_team.json.j2') }}"
     body_format: json
     status_code: 200
-  register: team_output
+  register: team_container_update_output
   when: container_team_exists == true

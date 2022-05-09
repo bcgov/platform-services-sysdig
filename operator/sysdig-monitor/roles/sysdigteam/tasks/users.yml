@@ -1,6 +1,6 @@
 ---
 # Lookup User
-- debug: msg=" Looking up {{ team_user.name }}"
+- debug: msg=" Looking up user - {{ team_user.name }}"
 - name: reset user_exists flag
   set_fact: 
     user_exists: false
@@ -12,6 +12,7 @@
   when: item.username|lower == team_user.name|lower
   with_items: 
     -  "{{ users_output.json.users }}"
+  no_log: true
 
 # Create User if they don't already exist
 - name: Create User
@@ -28,7 +29,6 @@
       status_code: 201
     register: user_creation_output
   when: user_exists == false
-
 
 - name: Build user list if user was just created
   set_fact: 

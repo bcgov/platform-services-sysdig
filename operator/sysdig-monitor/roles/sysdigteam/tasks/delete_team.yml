@@ -27,7 +27,7 @@
           Content-Type: "application/json"
       body_format: json
       status_code: 200
-    register: team_container_update_output
+    register: team_output
   - name: Delete Team
     uri: 
       url: "{{ sysdig_api_endpoint }}/api/teams/{{ team_host_data.id | int }}"

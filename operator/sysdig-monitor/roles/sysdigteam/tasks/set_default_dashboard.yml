@@ -28,7 +28,7 @@
     headers:
         Authorization: "Bearer {{ container_team_admin_user_token.json.token.key }}"
         Content-Type: "application/json"
-    body: "{{ lookup('template', 'templates/dashboard-template-resource-allocation.json.j2') }}"
+    body: "{{ lookup('template', 'templates/dashboard_template_resource_allocation.json.j2') }}"
     body_format: json
     status_code: 201
   register: default_dashboard_creation_output

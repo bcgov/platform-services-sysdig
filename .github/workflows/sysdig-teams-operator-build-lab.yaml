@@ -22,6 +22,6 @@ jobs:
     - name: Login to DockerHub Registry
       run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
     - name: Build the tagged Docker image
-      run: cd monitoring/sysdig/operator/sysdig-monitor && docker build . --file Dockerfile --tag bcdevopscluster/sysdig-teams-operator:lab
+      run: cd operator/sysdig-monitor && docker build . --file Dockerfile --tag bcdevopscluster/sysdig-teams-operator:lab
     - name: Push the tagged Docker image
       run: docker push bcdevopscluster/sysdig-teams-operator:lab

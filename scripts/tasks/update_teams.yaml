@@ -1,0 +1,76 @@
+---
+- name: Get team by name
+  set_fact:
+    team_match: "{{ teams_output.json | json_query(jmesquery)}}"
+  vars:
+    jmesquery: "teams[? name=='{{ current_team_name }}']"
+
+# is there are more than 2 teams with the same name, something went wrong:
+- meta: end_play
+  when: "{{ team_match|length != 1 }}"
+
+- name: Get the actual team
+  set_fact:
+    team_content: "{{ team_match[0] }}"
+
+# - name: Get a backup for the team into file
+#   copy: content="{{ team_content }}" dest="output/teams/team-{{ team_content.id }}.json"
+
+# ============ add default dashboard template to team ============
+# - name: Set Default Dashboards
+#   include_tasks: tasks/set_default_dashboard.yaml
+
+# ================================================================================================
+
+# ============ add SA to all teams ============
+# - name: Remove SA duplicates if exists
+#   set_fact:
+#     team_users_without_sa: "{{ team_match[0].userRoles | rejectattr('userName','equalto', sysdig_team_sa.name) }}"
+
+# - name: Update the team user list to add in SA
+#   set_fact:
+#     updated_team_users: "{{ team_users_without_sa | default([]) + [ { 'role': sysdig_team_sa.role, 'userId': (sysdig_team_sa.id | int) } ]}}"
+
+# - name: Update the team content
+#   set_fact:
+#     updated_team_content: "{{ team_match[0] | combine({ 'userRoles': updated_team_users }) }}"
+
+# - debug: msg="{{ updated_team_content }}"
+
+
+# - name: Add the new user to team
+#   uri: 
+#     url: "{{ sysdig_api_endpoint }}/api/teams/{{ team_content.id }}"
+#     method: PUT
+#     headers:
+#         Authorization: "Bearer {{ sysdig_token }}"
+#         Content-Type: "application/json"
+#     body: "{{ updated_team_content }}"
+#     body_format: json
+#     status_code: 200
+#   register: team_container_update_output
+# ================================================================================================
+
+
+# ============ config sysdig team settings to receive events ============
+# - name: Update the team content to enable events
+#   set_fact:
+#     updated_team_content: "{{ team_match[0] | combine({ 'canUseCustomEvents': true }) }}"
+
+# - name: Get a backup for the team into file
+#   copy: content="{{ updated_team_content }}" dest=output/team-new.json
+
+# - name: Enable Team to Receive Events
+#   uri: 
+#     url: "{{ sysdig_api_endpoint }}/api/teams/{{ team_content.id }}"
+#     method: PUT
+#     headers:
+#         Authorization: "Bearer {{ sysdig_token }}"
+#         Content-Type: "application/json"
+#     body: "{{ updated_team_content }}"
+#     body_format: json
+#     status_code: 200
+#   register: team_container_update_output
+
+# - debug: msg="{{ team_container_update_output }}"
+# ================================================================================================

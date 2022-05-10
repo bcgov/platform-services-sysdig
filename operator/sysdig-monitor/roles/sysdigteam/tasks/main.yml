@@ -17,10 +17,11 @@
   set_fact: 
     team_user_list: "{{ team.users }}"
 
-- name: Add SA to team user list when not included yet
-  set_fact: 
-    team_user_list: "{{ team.users | default([]) + [ { 'name': sysdig_team_sa.name, 'role': sysdig_team_sa.role } ] }}"
-  when: sysdig_team_sa.name not in team.users|join('|')
+# Don't need to assign the service account as it's an admin user for all teams now
+# - name: Add SA to team user list when not included yet
+#   set_fact: 
+#     team_user_list: "{{ team.users | default([]) + [ { 'name': sysdig_team_sa.name, 'role': sysdig_team_sa.role } ] }}"
+#   when: sysdig_team_sa.name not in team.users|join('|')
 
 
 # Find existing users or create new as required

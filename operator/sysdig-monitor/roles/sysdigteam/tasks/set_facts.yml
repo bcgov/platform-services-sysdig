@@ -11,3 +11,4 @@
     container_team_name:  "{{ ns_prefix }}-team"
     host_team_name: "{{ ns_prefix }}-team-persistent-storage" # keeping for deletion process
     container_team_exists: false
+    host_team_exists: false

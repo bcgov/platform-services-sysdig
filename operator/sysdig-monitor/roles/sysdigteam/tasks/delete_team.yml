@@ -18,7 +18,7 @@
 # Delete Team if Required
 - name: Delete Team
   block: 
-  - name: Delete Team
+  - name: Delete Container Team
     uri: 
       url: "{{ sysdig_api_endpoint }}/api/teams/{{ team_container_data.id | int }}"
       method: DELETE
@@ -28,7 +28,7 @@
       body_format: json
       status_code: 200
     register: team_container_update_output
-  - name: Delete Team
+  - name: Delete Host Team if exists
     uri: 
       url: "{{ sysdig_api_endpoint }}/api/teams/{{ team_host_data.id | int }}"
       method: DELETE
@@ -38,5 +38,6 @@
       body_format: json
       status_code: 200
     register: team_host_update_output
+    when: host_team_exists == true
   when: container_team_exists == true
   ignore_errors: true

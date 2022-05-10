@@ -12,4 +12,5 @@ logs
 *output*
 
 # ansible output files for sysdig
-monitoring/sysdig/operator/sysdig-monitor/output/*
+operator/sysdig-monitor/output/*
+scripts/vars.yaml

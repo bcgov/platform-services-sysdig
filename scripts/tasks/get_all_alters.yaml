@@ -1,0 +1,23 @@
+---
+- name: Get list of alerts
+  uri: 
+    url: "{{ sysdig_api_endpoint }}/api/alerts"
+    method: GET
+    headers:
+        Authorization: "Bearer {{ sysdig_token }}"
+        Content-Type: "application/json"
+  register: output
+
+- name: Save into output
+  local_action: 
+    module: copy 
+    content: "{{ output }}"
+    dest: output/alerts.json
+
+- name: Get alerts
+  set_fact:
+    alerts_list: "{{ output.json.alerts | json_query(jmesquery) }}"
+  vars:
+    jmesquery: "[].name"
+
+- debug: msg="{{ alerts_list }}"

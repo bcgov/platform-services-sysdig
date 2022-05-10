@@ -1,0 +1,15 @@
+---
+- name: Get an dashboard
+  uri: 
+    url: "{{ sysdig_api_endpoint }}/api/v3/dashboards/{{ dashboard_id }}"
+    method: GET
+    headers:
+        Authorization: "Bearer {{ sysdig_token }}"
+        Content-Type: "application/json"
+  register: dashboard_details
+
+- name: Save into output
+  local_action: 
+    module: copy 
+    content: "{{ dashboard_details.json }}"
+    dest: "output/dashboard-{{ dashboard_id }}.json"

@@ -14,3 +14,6 @@ logs
 # ansible output files for sysdig
 operator/sysdig-monitor/output/*
 scripts/vars.yaml
+
+# local setup
+*.DS_Store

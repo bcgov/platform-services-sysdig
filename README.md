@@ -1,3 +1,5 @@
+![Lifecycle:Maturing](https://img.shields.io/badge/Lifecycle-Maturing-007EC6)
+
 # Sysdig Application Monitoring
 
 ### Purpose
@@ -9,7 +11,7 @@ Sysdig is the centralized monitoring tool to support both Monitoring Operations 
 - [Authentication](docs/auth.md)
 
 ### Operator
-A custom Ansible-based operator has been created to manage Users and Teams in the SysDig Monitor platform. 
+A custom Ansible-based operator has been created to manage Users, Teams and Dashboard Templates in the SysDig Monitor platform. 
 
 ### Help / Contact
-See `#devops-platform-services` or `#devops-how-to` channels for assistance in Rocket.Chat
+See `#devops-platform-services` or `#devops-how-to` channels for assistance in [Rocket.Chat](https://chat.developer.gov.bc.ca/).

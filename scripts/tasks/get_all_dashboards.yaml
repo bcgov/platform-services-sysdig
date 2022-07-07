@@ -1,0 +1,23 @@
+---
+- name: Get list of dashboards
+  uri: 
+    url: "{{ sysdig_api_endpoint }}/api/v3/dashboards"
+    method: GET
+    headers:
+        Authorization: "Bearer {{ sysdig_token }}"
+        Content-Type: "application/json"
+  register: output
+
+- name: Save into output
+  local_action: 
+    module: copy 
+    content: "{{ output }}"
+    dest: output/dashboards.json
+
+- name: Get dashboards
+  set_fact:
+    dashboards_list: "{{ output.json.dashboards | json_query(jmesquery) }}"
+  vars:
+    jmesquery: "[].name"
+
+- debug: msg="{{ dashboards_list }}"

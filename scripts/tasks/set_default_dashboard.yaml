@@ -1,0 +1,42 @@
+---
+# Create / Apply default dashboard for Container Scope
+
+# Since API tokens are Team Scoped, we need to find an Admin 
+# user of the new team and fetch their token for the dashboard 
+# configuration
+
+# Assume team_content exists
+- name: Setup team prefix
+  set_fact:
+    team_prefix: "{{ team_content.name.split('-team')[0] | lower }}"
+
+- name: Setup team info
+  set_fact:
+    team_admin_username: "{{ sysdig_team_sa.name }}"
+    team_id: "{{ team_content.id }}"
+    target_namespace: "{{ team_prefix }}-prod"
+
+- debug: msg="{{ team_id }}"
+- debug: msg="{{ target_namespace }}"
+
+- name: Get token from Admin user of container team
+  uri: 
+    url: "{{ sysdig_api_endpoint }}/api/token/{{ team_admin_username }}/{{ team_id }}"
+    method: GET
+    headers:
+        Authorization: "Bearer {{ sysdig_token }}"
+        Content-Type: "application/json"
+  register: container_team_admin_user_token
+
+# Add the dashboard that each team will need
+- name: Set Resource Usage Dashboard
+  uri: 
+    url: "{{ sysdig_api_endpoint }}/api/v3/dashboards/"
+    method: POST
+    headers:
+        Authorization: "Bearer {{ container_team_admin_user_token.json.token.key }}"
+        Content-Type: "application/json"
+    body: "{{ lookup('template', 'templates/dashboard_template_resource_allocation.json.j2') }}"
+    body_format: json
+    status_code: 201
+  register: default_dashboard_creation_output

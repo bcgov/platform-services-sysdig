@@ -1,0 +1,11 @@
+---
+- name: Get an alert
+  uri: 
+    url: "{{ sysdig_api_endpoint }}/api/alerts/{{ alert_id }}"
+    method: GET
+    headers:
+        Authorization: "Bearer {{ sysdig_token }}"
+        Content-Type: "application/json"
+  register: alert_details
+
+- debug: msg="{{ alert_details }}"

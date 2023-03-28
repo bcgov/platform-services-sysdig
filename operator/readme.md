@@ -5,12 +5,12 @@ For each new app team onboarding to Sysdig, we leverage the `Sysdig Team Operato
 # Operational Approaches:
 
 ## Build
-Ideally the build process would be a combination of GitHub Actions and OpenShift Builds, where the OpenShift build pushes the image to Artifactory. Due to some limitation, we are currently using a Docker account deployment is based on the build docker image from docker.io directly.
+The build process runs as GitHub Actions and pushes the built image to Artifactory.
 
-1. Any push to a non-master branch will trigger a GitHub Action to trigger a build in the OCP Lab cluster. A new deployment must be manually triggered once the build is complete. 
-2. A merge into master with any file changes in the sysdig/operator folder will trigger a build in the OCP Production cluster. A new deployment must be manually triggered once the build is complete. 
+1. Any push to a non-master branch will trigger a GitHub Action to trigger a docker image build and pushed to image tag as `lab`.
+2. A merge into main with any file changes in the sysdig/operator folder will trigger a build of the `prod` image.
 
-Example GitHub Action can be found [here](../../../.github/workflows/sysdig-teams-operator-build-lab.yaml).
+Example GitHub Action can be found [here](../.github/workflows/sysdig-teams-operator-build-lab.yaml).
 
 ## Development
 The output manifest from kustomize build are copied over to CCM repo for the actual operator deployment. For any changes in the operator, please follow the next part.
@@ -38,9 +38,9 @@ The output manifest from kustomize build are copied over to CCM repo for the act
 
 - Building docker image:
   ```shell
-  docker login -u bcdevopscluster
-  docker build . --file Dockerfile --tag bcdevopscluster/sysdig-teams-operator:lab
-  docker push bcdevopscluster/sysdig-teams-operator:lab
+  docker login -u <Paltform-services-artifactory-team-account> artifacts.developer.gov.bc.ca/plat-util-images
+  docker build . --file Dockerfile --tag artifacts.developer.gov.bc.ca/plat-util-images/sysdig-teams-operator:lab
+  docker push artifacts.developer.gov.bc.ca/plat-util-images/sysdig-teams-operator:lab
   # NOTE: would use Makefile or start a PR and leverage Github action for build
   ```
 

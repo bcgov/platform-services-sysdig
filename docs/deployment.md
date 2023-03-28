@@ -21,9 +21,8 @@ oc adm policy add-scc-to-user privileged -z sysdig-agent
 oc adm policy add-cluster-role-to-user cluster-reader -z sysdig-agent
 # create sysdig secret
 oc create secret generic sysdig-agent --from-literal=access-key=<your_sysdig_access_key>
-# currently using docker image from account called bcdevopscluster, will switch to artifactory when ready:
-oc create secret docker-registry bcgov-docker-hub --docker-server=docker.io --docker-username=bcdevopscluster --docker-password=<docker_password> --docker-email=unused
-oc secrets link default bcgov-docker-hub --for=pull
+# currently using the Artifactory shared team account, make sure the secret exists:
+oc get secret artifacts-platsvcs-reader
 
 # Label all cluster nodes so daemonset would find them 
 oc label node --all "sysdig-agent=true"

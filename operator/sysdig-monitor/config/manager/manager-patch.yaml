@@ -13,7 +13,7 @@ spec:
         runAsNonRoot: false
       containers:
       - name: manager
-        image: 'docker.io/bcdevopscluster/sysdig-teams-operator:lab'
+        image: 'artifacts.developer.gov.bc.ca/plat-util-images/sysdig-teams-operator:lab'
         imagePullPolicy: "Always"
         env:
         - name: SYSDIG_TOKEN

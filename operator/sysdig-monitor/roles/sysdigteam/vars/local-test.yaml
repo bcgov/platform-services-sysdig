@@ -10,9 +10,11 @@ sysdig_team_sa:
 team:
   description: The Sysdig Team for testing
   users:
-    - name: shellshell456@gmail.com
+    - name: billy.li.901@gmail.com
       role: ROLE_TEAM_READ
-    - name: shelly.han@gov.bc.ca
+    - name: better.call@realtorbilly.ca
+      role: ROLE_TEAM_READ
+    - name: billy.li@gov.bc.ca
       role: ROLE_TEAM_EDIT
 
 # Available Roles Mapping:

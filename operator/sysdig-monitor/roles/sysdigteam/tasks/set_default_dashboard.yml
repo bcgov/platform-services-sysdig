@@ -21,14 +21,17 @@
   register: container_team_admin_user_token
 
 # Add the dashboard that each team will need
-- name: Set Resource Usage Dashboard
+- name: Set Resource Usage Dashboards
   uri: 
     url: "{{ sysdig_api_endpoint }}/api/v3/dashboards/"
     method: POST
     headers:
-        Authorization: "Bearer {{ container_team_admin_user_token.json.token.key }}"
-        Content-Type: "application/json"
-    body: "{{ lookup('template', 'templates/dashboard_template_resource_allocation.json.j2') }}"
+      Authorization: "Bearer {{ container_team_admin_user_token.json.token.key }}"
+      Content-Type: "application/json"
+    body: "{{ lookup('template', item) }}"
     body_format: json
     status_code: 201
+  with_items:
+    - "templates/dashboard_template_resource_allocation.json.j2"
+    - "templates/dashboard-resources-approve.json.j2"
   register: default_dashboard_creation_output

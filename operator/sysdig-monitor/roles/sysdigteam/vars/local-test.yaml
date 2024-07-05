@@ -10,9 +10,10 @@ sysdig_team_sa:
 team:
   description: The Sysdig Team for testing
   users:
+  # Use two non-admin email to test it actually works, admin account(my gov email won't be added.)
     - name: shellshell456@gmail.com
       role: ROLE_TEAM_READ
-    - name: shelly.han@gov.bc.ca
+    - name: billy.li.901@gmail.com
       role: ROLE_TEAM_EDIT
 
 # Available Roles Mapping:

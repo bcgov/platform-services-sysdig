@@ -32,6 +32,6 @@
     body_format: json
     status_code: 201
   with_items:
-    - "templates/dashboard_template_resource_allocation.json.j2"
+    # - "templates/dashboard_template_resource_allocation.json.j2"
     - "templates/dashboard-resources-approve.json.j2"
   register: default_dashboard_creation_output

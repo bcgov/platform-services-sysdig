@@ -7,8 +7,7 @@ Sysdig is the centralized monitoring tool to support both Monitoring Operations 
 
 ### Documentation
 - [Developer User Guide](https://github.com/bcgov/platform-developer-docs/blob/main/src/docs/app-monitoring/sysdig-monitor-onboarding.md)
-- [Deployment](docs/deployment.md)
-- [Authentication](docs/auth.md)
+- [All Maintenance related topics](docs/maintenance.md)
 
 ### Operator
 A custom Ansible-based operator has been created to manage Users, Teams and Dashboard Templates in the SysDig Monitor platform. 

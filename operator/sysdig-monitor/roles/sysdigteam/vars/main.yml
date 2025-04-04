@@ -1,6 +1,7 @@
 ---
 # vars file for SysdigTeam
 sysdig_api_endpoint: https://app.sysdigcloud.com
+sysdig_secure_api_endpoint: https://api.us1.sysdig.com #/platform/v1/teams
 sysdig_token: "{{ lookup('env', 'SYSDIG_TOKEN') }}"
 
 # SA for default dashboards:

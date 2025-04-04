@@ -19,7 +19,12 @@ function list_metrics() {
   response=$(curl --location --request GET "$API_ENDPOINT/monitor/prometheus-jobs/v1/disabled-metrics" \
   --header "Authorization: Bearer $TOKEN")
   echo "Disabled metrics:"
-  echo "$response" | jq -r '.data[] | .metrics[] | .metricName'
+  echo "$response" | jq -r '
+  (.data // [])
+  | .[]
+  | (.metrics // [])
+  | .[]
+  | (.metricName // "")'
 }
 
 function disable_metrics() {

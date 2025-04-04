@@ -1,0 +1,33 @@
+{
+  "name": "{{ container_team_name }}",
+  "description": "{{ team.description }}",
+  "isDefaultTeam": false,
+  "standardTeamRole": "ROLE_TEAM_STANDARD",
+  "customTeamRoleId": null,
+  "product": "secure",
+  "uiSettings": {
+    "theme": "#73A1F7"
+  },
+  "isAllZones": false,
+  "zoneIds": [],
+  "scopes": "scopes": [
+  {
+    "type": "HOST_CONTAINER",
+    "expression": "container"
+  },
+  {
+    "type": "AGENT",
+    "expression": "kubernetes.namespace.name in (\"{{ namespaces | join('","') }}\")"
+  }
+],
+  "additionalTeamPermissions": {{ additionalTeamPermissions|tojson }},
+
+  "userRoles": [
+    {% for role in team_users_and_roles %}
+    {
+      "userId": {{ role.userId }},
+      "role": "{{ role.role }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}

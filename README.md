@@ -10,7 +10,8 @@ Sysdig is the centralized monitoring tool to support both Monitoring Operations 
 - [All Maintenance related topics](docs/maintenance.md)
 
 ### Operator
-A custom Ansible-based operator has been created to manage Users, Teams and Dashboard Templates in the Sysdig Monitor and Secure platform. 
+A custom Ansible-based operator has been created to manage Users, Teams and Dashboard Templates in the Sysdig Monitor and Secure platform.
+> Note: this will be replaced with a Go based Operator soon
 
 ### Help / Contact
 See `#devops-sysdig` or `#devops-how-to` channels for assistance in [Rocket.Chat](https://chat.developer.gov.bc.ca/).

@@ -58,9 +58,8 @@ func (r *SysdigTeamGoReconciler) syncOneTeam(
 	namespaces []string,
 ) (int64, error) {
 	// Fetch existing teams by name filter
-	// fmt.Printf("wtf is this team %v\n", filtered)
 	filtered, err := helpers.FetchTeams(apiEndpoint, token, teamName)
-	fmt.Printf("Debug: what is this exists team %+v\n", filtered)
+
 	if err != nil {
 		return 0, fmt.Errorf("fetch teams for %q: %w", teamName, err)
 	}
@@ -73,7 +72,7 @@ func (r *SysdigTeamGoReconciler) syncOneTeam(
 			break
 		}
 	}
-	fmt.Printf("wtf is this exists team %+v\n", exists)
+
 	// Create if missing
 	if exists == nil {
 		id, err := helpers.CreateTeam(
@@ -121,8 +120,6 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	// Step 0: set fact
 	facts := helpers.SetTeamFacts(req.Namespace)
-	fmt.Printf("DEBUG: Check fact Computed nsPrefix!: %+v\n", facts)
-	// fmt.Printf("Computed nsPrefix: %s\n", facts.NSPrefix)
 
 	// Step 1: Fetch the CR instance
 	var sysdigTeam api.SysdigTeamGo
@@ -169,7 +166,6 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 		_ = r.Status().Update(ctx, &sysdigTeam)
 
-		// Stop reconciliation until fixed
 		return ctrl.Result{}, nil
 	}
 
@@ -183,8 +179,6 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			Role: u.Role, // e.g. "ROLE_TEAM_EDIT"
 		})
 	}
-	fmt.Printf("DEBUG: teamUserList from CR: %+v\n", req)
-	fmt.Printf("DEBUG: raw CR Spec: %+v\n", sysdigTeam.Spec)
 
 	// 4) Reconcile each user one by one
 	var teamUsersAndRoles []helpers.TeamUserRole
@@ -219,15 +213,6 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	fmt.Printf("DEBUG: final teamUsersAndRoles = %+v\n", teamUsersAndRoles)
 
-	// // 4.5) Validate the role.... nvm, I found that sysdig will do validation too.
-	// for _, m := range teamUsersAndRoles {
-	//   if _, ok := validRoles[m.Role]; !ok {
-	//       return ctrl.Result{}, fmt.Errorf(
-	//           "invalid role %q for user %d: must be one of %v",
-	//           m.Role, m.UserID, keys(validRoles),
-	//       )
-	//   }
-
 	// 5) Sync monitor team
 	monitorTeamID, err := r.syncOneTeam(
 		apiEndpoint,
@@ -259,8 +244,6 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	for _, m := range teamUsersAndRoles {
 		// Monitor team membership
 
-		fmt.Printf("Debug, what is in the loop, :%+v\n", m)
-
 		Monitorerr := helpers.SaveMembership(
 			apiEndpoint,
 			token,
@@ -288,99 +271,8 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 		fmt.Printf("finish user %s\n", m.Name)
 	}
-	// --------------------------------------------------------------------------
 
-	// 	filteredMonTeam, _ := helpers.FetchTeams(apiEndpoint, token, facts.ContainerTeamName)
-	// // teams, err := helpers.FetchTeams(apiEndpoint, token, "sysdigteamtest-team")
-	// if err != nil {
-	// 	return ctrl.Result{}, fmt.Errorf("failed to fetch teams by filter: %w", err)
-	// }
-	// // 5) Find if the team already exist. Look for an exact (case-insensitive) name match in that small slice
-	// // NOTE, this is for monitring team
-	// var existingListofTeams *helpers.SysdigTeam
-	// for i := range filteredMonTeam {
-	// 	if strings.EqualFold(filteredMonTeam[i].Name, facts.ContainerTeamName) {
-	// 		existingListofTeams = &filteredMonTeam[i]
-	// 		break
-	// 	}
-	// }
-
-	// fmt.Printf("wtf is this team %v\n", existingListofTeams)
-	// // 6.1) If not exist, create, if exist, update
-	// if existingListofTeams != nil {
-	// 	// update existing
-	// 	id := filteredMonTeam[0].ID
-	// 	// version := teams[0].Version
-	// 	// newID, _ := xhelpers.UpdateTeam(apiEndpoint, token, facts.ContainerTeamName, sysdigTeam.Spec.Team.Description, id, version, facts.Namespaces, teamUsersAndRoles)
-	// 	fmt.Printf("Monitor team already exists, skipping create:%d\n", id)
-	// } else {
-	// 	// create new
-	// 	monitorID, err := helpers.CreateTeam(
-	// 		apiEndpoint,
-	// 		token,
-	// 		facts.ContainerTeamName,          // name
-	// 		sysdigTeam.Spec.Team.Description, // description
-	// 		"monitor",                        // product
-	// 		facts.Namespaces,                 // namespaces → scopes built under the hood
-	// 	)
-	// 	if err != nil {
-	// 		return ctrl.Result{}, err
-	// 	}
-	// 	fmt.Printf("Created team ID %d\n", monitorID)
-	// }
-	// // 6,2) Try to fetch the secure team by name
-	// // NOTE THIs IS FOR MONITORING TEAM
-	// filteredSec, err := helpers.FetchTeams(apiEndpoint, token, facts.ContainerSecureTeamName)
-	// if err != nil {
-	// 	return ctrl.Result{}, fmt.Errorf("fetch secure teams: %w", err)
-	// }
-
-	// // 2) Look for an exact (case‐insensitive) match
-	// var secureExists *helpers.SysdigTeam
-	// for i := range filteredSec {
-	// 	if strings.EqualFold(filteredSec[i].Name, facts.ContainerSecureTeamName) {
-	// 		secureExists = &filteredSec[i]
-	// 		break
-	// 	}
-	// }
-
-	// if secureExists == nil {
-	// 	// 3a) Doesn’t exist → create it
-	// 	secureID, err := helpers.CreateTeam(
-	// 		apiEndpoint,
-	// 		token,
-	// 		facts.ContainerSecureTeamName,    // name
-	// 		sysdigTeam.Spec.Team.Description, // description
-	// 		"secure",                         // product
-	// 		facts.Namespaces,                 // namespaces → used to build scopes
-	// 	)
-	// 	if err != nil {
-	// 		return ctrl.Result{}, fmt.Errorf("create secure team: %w", err)
-	// 	}
-	// 	r.Log.Info("Created secure team", "id", secureID)
-
-	// 	r.Log.Info("Assigned users to new secure team", "id", secureID)
-
-	// } else {
-	// 	// 4) Already exists → update it
-	// 	// _, err = helpers.UpdateTeam(
-	// 	// 	apiEndpoint,
-	// 	// 	token,
-	// 	// 	sysdigTeam.Spec.Team.Description,
-	// 	// 	facts.ContainerSecureTeamName,
-	// 	// 	secureExists.ID,
-	// 	// 	// secureExists.Version,
-	// 	// 	facts.Namespaces,
-	// 	// )
-	// 	if err != nil {
-	// 		return ctrl.Result{}, fmt.Errorf("update secure team: %w", err)
-	// 	}
-	// 	r.Log.Info("Updated existing secure team", "id", secureExists.ID)
-	// }
-
-	// ------------------------------------------------------------------------------
 	return ctrl.Result{}, nil
-	// +++++++++++++++
 }
 
 // SetupWithManager sets up the controller with the Manager.

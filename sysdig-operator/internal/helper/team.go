@@ -17,12 +17,6 @@ type SysdigTeam struct {
 	// Version int    `json:"version"`
 }
 
-// TeamUserRole holds user-role mapping for update payloads.
-// type TeamUserRole struct {
-// 	UserID int64  `json:"userId"`
-// 	Role   string `json:"role"`
-// }
-
 // Scope defines a resource filtering scope for a team.
 type Scope struct {
 	Type       string `json:"type"`
@@ -219,7 +213,7 @@ func postTeam(url, token string, body interface{}) (int64, error) {
 	return created.ID, nil
 }
 
-// we don't update team. as we use membership api to manage access.
+// we don't update team. as we use membership api to manage access. But just leave it there in case we want to add more function in the future
 // func UpdateTeam(apiEndpoint, token, name, description string, id int64, version int, namespaces []string) (int64, error) {
 // 	url := fmt.Sprintf("%s/platform/v1/teams/%d", apiEndpoint, id)
 // 	reqBody := UpdateTeamRequest{
@@ -235,7 +229,6 @@ func postTeam(url, token string, body interface{}) (int64, error) {
 // 		Filter:              BuildFilterExpression(namespaces),
 // 		// UserRoles:           users,
 // 	}
-// 	fmt.Printf("let me see see what is Update !!!!!: %v\n", reqBody)
 // 	return putTeam(url, token, reqBody)
 // }
 

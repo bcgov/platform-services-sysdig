@@ -41,30 +41,39 @@ type CreateUserResponse struct {
 	Version     int     `json:"version,omitempty"`
 }
 
-// FetchAllUsers fetches and decodes the users list
-func FetchAllUsers(apiEndpoint, token string) ([]SysdigUser, error) {
-	url := fmt.Sprintf("%s/platform/v1/users", apiEndpoint)
+// FetchUsers calls GET /platform/v1/users and applies an optional email filter.
+// If filterEmail is non-empty, the request uses the 'filter=email:<value>' query parameter.
+func FetchUsers(apiEndpoint, token, filterEmail string) ([]SysdigUser, error) {
+	// Build base URL
+	endpoint := fmt.Sprintf("%s/platform/v1/users", apiEndpoint)
+	// Append filter parameter if provided
+	if filterEmail != "" {
+		endpoint = fmt.Sprintf("%s?filter=email:%s", endpoint, filterEmail)
+	}
+
 	client := &http.Client{Timeout: 10 * time.Second}
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", endpoint, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("request error: %w", err)
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK {
-		b, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("FetchAllUsers: status %d, body %s", resp.StatusCode, string(b))
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("FetchUsers: status %d, body %s", resp.StatusCode, string(body))
 	}
 
+	// Decode the wrapper and return the inner slice
 	var wrapper UsersResponse
 	if err := json.NewDecoder(resp.Body).Decode(&wrapper); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("decode response: %w", err)
 	}
 	return wrapper.Data, nil
 }
@@ -115,35 +124,3 @@ type TeamUserRole struct {
 	Role   string
 	UserID int64
 }
-
-// EnsureTeamUsers reconciles the desired list with existingUsers (so you don’t re‐fetch).
-// func EnsureTeamUsers(existingUsers []SysdigUser, apiEndpoint, token string, teamUserList []TeamUserRole) ([]TeamUserRole, error) {
-// 	finalList := make([]TeamUserRole, 0, len(teamUserList))
-// 	for _, tu := range teamUserList {
-// 		var found *SysdigUser
-// 		for i := range existingUsers {
-// 			if strings.EqualFold(existingUsers[i].Email, tu.Name) {
-// 				found = &existingUsers[i]
-// 				break
-// 			}
-// 		}
-// 		if found != nil {
-// 			finalList = append(finalList, TeamUserRole{
-// 				Name:   tu.Name,
-// 				Role:   tu.Role,
-// 				UserID: found.ID,
-// 			})
-// 		} else {
-// 			newID, err := CreateUser(apiEndpoint, token, tu.Name, tu.Role)
-// 			if err != nil {
-// 				return nil, err
-// 			}
-// 			finalList = append(finalList, TeamUserRole{
-// 				Name:   tu.Name,
-// 				Role:   tu.Role,
-// 				UserID: newID,
-// 			})
-// 		}
-// 	}
-// 	return finalList, nil
-// }

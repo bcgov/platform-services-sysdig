@@ -1,0 +1,18 @@
+apiVersion: monitoring.devops.gov.bc.ca/v1alpha1
+kind: SysdigTeamGo
+metadata:
+  labels:
+    app.kubernetes.io/name: sysdig-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: d289d3-team
+spec:
+  team:
+    description: The Sysdig Team for the OpenShift Project Set letstest
+    users:
+    - name: better.call@realtorbilly.ca
+      role: ROLE_TEAM_EDIT
+    - name: 540634615@qq.com
+      role: ROLE_TEAM_STANDARD
+    - name: billy.li.901@gmail.com
+      role: ROLE_TEAM_READ
+  # TODO(user): Add fields here

@@ -17,6 +17,13 @@ type SysdigUser struct {
 	// add FirstName, LastName, etc. if you need them
 }
 
+// TeamUserRole is the final Name/Role/UserID struct
+type TeamUserRole struct {
+	Name   string
+	Role   string
+	UserID int64
+}
+
 // UsersResponse wraps the list returned by Sysdig under "data"
 type UsersResponse struct {
 	Data []SysdigUser `json:"data"`
@@ -116,11 +123,4 @@ func CreateUser(apiEndpoint, token, email, role string) (int64, error) {
 
 	//Return the new user ID:
 	return cr.ID, nil
-}
-
-// TeamUserRole is the final Name/Role/UserID struct
-type TeamUserRole struct {
-	Name   string
-	Role   string
-	UserID int64
 }

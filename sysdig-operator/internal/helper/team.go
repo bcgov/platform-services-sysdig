@@ -109,9 +109,6 @@ func FetchTeams(apiEndpoint, token, filterName string) ([]SysdigTeam, error) {
 		return nil, fmt.Errorf("reading FetchTeams body: %w", err)
 	}
 
-	// Log it for debugging
-	fmt.Printf("DEBUG: FETCHING team response body:\n%s\n", string(bodyBytes))
-
 	// Unmarshal under `data`
 	var wrapper struct {
 		Data []SysdigTeam `json:"data"`

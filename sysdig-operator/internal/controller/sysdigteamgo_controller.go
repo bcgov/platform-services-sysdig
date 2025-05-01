@@ -44,15 +44,6 @@ type SysdigTeamGoReconciler struct {
 	Log    logr.Logger
 }
 
-var validRoles = map[string]struct{}{
-	"ROLE_TEAM_NONE":            {},
-	"ROLE_TEAM_READ":            {},
-	"ROLE_TEAM_SERVICE_MANAGER": {},
-	"ROLE_TEAM_STANDARD":        {},
-	"ROLE_TEAM_EDIT":            {},
-	"ROLE_TEAM_MANAGER":         {},
-}
-
 func (r *SysdigTeamGoReconciler) syncOneTeam(
 	apiEndpoint, token, teamName, product, description string,
 	namespaces []string,
@@ -96,6 +87,107 @@ func (r *SysdigTeamGoReconciler) syncOneTeam(
 	}
 }
 
+// syncMemberships ensures the given teamID has exactly the desired
+// user/role pairs. It only calls SaveMembership when a user is missing
+// or has the wrong role.
+func (r *SysdigTeamGoReconciler) syncMemberships(
+	apiEndpoint, token string,
+	teamID int64,
+	desired []helpers.TeamUserRole,
+	product string,
+) error {
+	existing, err := helpers.FetchTeamMemberships(apiEndpoint, token, teamID)
+	if err != nil {
+		return fmt.Errorf("fetch %s memberships: %w", product, err)
+	}
+
+	// build lookup: userID -> role
+	existMap := make(map[int64]string, len(existing))
+	for _, m := range existing {
+		existMap[m.UserID] = m.Role
+	}
+
+	desiredMap := make(map[int64]string, len(desired))
+	for _, d := range desired {
+		desiredMap[d.UserID] = d.Role
+	}
+	for _, d := range desired {
+		currentRole, found := existMap[d.UserID]
+
+		switch {
+		case !found:
+			// never had this user — just create
+			resp, err := helpers.SaveMembership(apiEndpoint, token,
+				teamID, d.UserID, d.Role)
+			if err != nil {
+				r.Log.Error(err, "SaveMembership failed (new)",
+					"team", product, "teamID", teamID,
+					"userID", d.UserID, "role", d.Role)
+			} else {
+				r.Log.Info("SaveMembership succeeded (new)",
+					"team", product, "teamID", teamID,
+					"userID", d.UserID, "role", d.Role,
+					"response", string(resp))
+			}
+
+		case currentRole != d.Role:
+			// role changed — delete then re‐create (Role check)
+			if err := helpers.DeleteMembership(apiEndpoint, token, teamID, d.UserID); err != nil {
+				r.Log.Error(err, "DeleteMembership failed",
+					"team", product, "teamID", teamID,
+					"userID", d.UserID, "oldRole", currentRole)
+			} else {
+				r.Log.Info("DeleteMembership succeeded",
+					"team", product, "teamID", teamID,
+					"userID", d.UserID, "oldRole", currentRole)
+			}
+
+			// now create with the new role
+			resp, err := helpers.SaveMembership(apiEndpoint, token,
+				teamID, d.UserID, d.Role)
+			if err != nil {
+				r.Log.Error(err, "SaveMembership failed (after delete)",
+					"team", product, "teamID", teamID,
+					"userID", d.UserID, "newRole", d.Role)
+			} else {
+				r.Log.Info("SaveMembership succeeded (after delete)",
+					"team", product, "teamID", teamID,
+					"userID", d.UserID, "role", d.Role,
+					"response", string(resp))
+			}
+
+		default:
+			// found and role matches — nothing to do
+			r.Log.Info("Membership already correct",
+				"team", product, "teamID", teamID,
+				"userID", d.UserID, "role", d.Role)
+		}
+	}
+
+	// Remove any extra users not in desired list (ID check)
+	for _, m := range existing {
+		if _, keep := desiredMap[m.UserID]; !keep {
+
+			// Dustin says we can not delete ROLE_TEAM_MAGAGER once they been added, even this user does not exist
+			// , so we should let user stop adding this role.
+			if m.Role == "ROLE_TEAM_MANAGER" {
+				r.Log.Info("Skipping deletion of manager",
+					"team", product, "teamID", teamID, "userID", m.UserID)
+				continue
+			}
+			if err := helpers.DeleteMembership(apiEndpoint, token, teamID, m.UserID); err != nil {
+
+				r.Log.Error(err, "DeleteMembership failed",
+					"team", product, "teamID", teamID, "userID", m.UserID, "role", m.Role)
+			} else {
+				r.Log.Info("Deleted extra membership",
+					"team", product, "teamID", teamID, "userID", m.UserID, "role", m.Role)
+			}
+		}
+	}
+	return nil
+}
+
 // +kubebuilder:rbac:groups=monitoring.devops.gov.bc.ca,resources=sysdig-team-go,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=monitoring.devops.gov.bc.ca,resources=sysdig-team-go/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=monitoring.devops.gov.bc.ca,resources=sysdig-team-go/finalizers,verbs=update
@@ -112,7 +204,6 @@ func (r *SysdigTeamGoReconciler) syncOneTeam(
 func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
-	// TODO(user): your logic here
 	apiEndpoint := os.Getenv("SYSDIG_API_ENDPOINT")
 	token := os.Getenv("SYSDIG_TOKEN")
 
@@ -211,9 +302,7 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		})
 	}
 
-	fmt.Printf("DEBUG: final teamUsersAndRoles = %+v\n", teamUsersAndRoles)
-
-	// 5) Sync monitor team
+	// 5)----- MONITOR TEAM -----
 	monitorTeamID, err := r.syncOneTeam(
 		apiEndpoint,
 		token,
@@ -226,7 +315,12 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return ctrl.Result{}, err
 	}
 
-	// 6) Sync secure team and get its ID
+	// make sure membership is the same as what sysdig have
+	if err := r.syncMemberships(apiEndpoint, token, monitorTeamID, teamUsersAndRoles, "monitor"); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// 6) ----- Secure TEAM -----
 	secureTeamID, err := r.syncOneTeam(
 		apiEndpoint,
 		token,
@@ -240,11 +334,15 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	fmt.Printf("check ID's Monitoring: %d, Secure:%d\n", monitorTeamID, secureTeamID)
+	// make sure membership is the same as what sysdig have
+	if err := r.syncMemberships(apiEndpoint, token, secureTeamID, teamUsersAndRoles, "secure"); err != nil {
+		return ctrl.Result{}, err
+	}
 	// 7) Assign or update memberships for each user in both teams
 	for _, m := range teamUsersAndRoles {
 		// Monitor team membership
 
-		Monitorerr := helpers.SaveMembership(
+		_, Monitorerr := helpers.SaveMembership(
 			apiEndpoint,
 			token,
 			monitorTeamID,
@@ -257,7 +355,7 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 
 		// Secure team membership
-		Secureerr := helpers.SaveMembership(
+		_, Secureerr := helpers.SaveMembership(
 			apiEndpoint,
 			token,
 			secureTeamID,
@@ -269,7 +367,7 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				"teamID", secureTeamID, "userID", m.UserID, "role", m.Role)
 		}
 
-		fmt.Printf("finish user %s\n", m.Name)
+		r.Log.Info("finish user", m.Name)
 	}
 
 	return ctrl.Result{}, nil
@@ -277,6 +375,7 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *SysdigTeamGoReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	r.Log = ctrl.Log.WithName("controllers").WithName("SysdigTeamGo")
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&monitoringv1alpha1.SysdigTeamGo{}).
 		Complete(r)

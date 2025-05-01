@@ -11,8 +11,8 @@ spec:
     users:
     - name: better.call@realtorbilly.ca
       role: ROLE_TEAM_EDIT
-    - name: 540634615@qq.com
-      role: ROLE_TEAM_STANDARD
+    - name: 627463434@qq.com
+      role: ROLE_TEAM_EDIT
     - name: billy.li.901@gmail.com
       role: ROLE_TEAM_READ
   # TODO(user): Add fields here

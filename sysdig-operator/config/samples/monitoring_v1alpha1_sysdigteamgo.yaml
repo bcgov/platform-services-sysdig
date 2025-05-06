@@ -1,10 +1,10 @@
 apiVersion: monitoring.devops.gov.bc.ca/v1alpha1
-kind: SysdigTeamGo
+kind: SysdigTeam
 metadata:
   labels:
     app.kubernetes.io/name: sysdig-operator
     app.kubernetes.io/managed-by: kustomize
-  name: d289d3-team
+  name: b01faf-team
 spec:
   team:
     description: The Sysdig Team for the OpenShift Project Set letstest

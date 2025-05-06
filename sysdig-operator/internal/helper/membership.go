@@ -98,7 +98,7 @@ func SaveMembership(apiEndpoint, token string, teamID, userID int64, role string
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		b, _ := io.ReadAll(resp.Body)
 		return "", fmt.Errorf("SaveMembership: status %d, body %s", resp.StatusCode, string(b))
 	}

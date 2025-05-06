@@ -8,10 +8,10 @@ metadata:
 spec:
   group: monitoring.devops.gov.bc.ca
   names:
-    kind: SysdigTeamGo
-    listKind: SysdigTeamGoList
+    kind: SysdigTeam
+    listKind: SysdigTeamList
     plural: sysdig-team-go
-    singular: sysdigteamgo
+    singular: sysdigteam
   scope: Namespaced
   versions:
   - name: v1alpha1

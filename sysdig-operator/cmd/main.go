@@ -35,6 +35,7 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
+	"github.com/bcgov/platform-services-sysdig/sysdig-operator/api/v1alpha1"
 	monitoringv1alpha1 "github.com/bcgov/platform-services-sysdig/sysdig-operator/api/v1alpha1"
 	"github.com/bcgov/platform-services-sysdig/sysdig-operator/internal/controller"
 	// +kubebuilder:scaffold:imports
@@ -47,7 +48,7 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-
+	utilruntime.Must(v1alpha1.AddToScheme(scheme))
 	utilruntime.Must(monitoringv1alpha1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }

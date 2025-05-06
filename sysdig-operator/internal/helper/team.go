@@ -174,7 +174,6 @@ func CreateTeam(apiEndpoint, token, name, description, product string, namespace
 		UISettings:                ui,
 		AdditionalTeamPermissions: perms,
 	}
-	fmt.Printf("let me see see what is Create !!!!!: %+v /n", reqBody)
 	return postTeam(url, token, reqBody)
 }
 

@@ -52,7 +52,7 @@ type SysdigTeamGoStatus struct {
 // +kubebuilder:resource:path=sysdig-team-go
 
 // SysdigTeamGo is the Schema for the sysdig-team-go API
-type SysdigTeamGo struct {
+type SysdigTeam struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
@@ -62,13 +62,12 @@ type SysdigTeamGo struct {
 
 // +kubebuilder:object:root=true
 
-// SysdigTeamGoList contains a list of SysdigTeamGo
-type SysdigTeamGoList struct {
+// SysdigTeamList contains a list of SysdigTeam
+type SysdigTeamList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []SysdigTeamGo `json:"items"`
+	Items           []SysdigTeam `json:"items"`
 }
-
 type Condition struct {
 	Type    string                 `json:"type,omitempty"`
 	Status  metav1.ConditionStatus `json:"status,omitempty"`
@@ -77,5 +76,5 @@ type Condition struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&SysdigTeamGo{}, &SysdigTeamGoList{})
+	SchemeBuilder.Register(&SysdigTeam{}, &SysdigTeamList{})
 }

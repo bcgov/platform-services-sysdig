@@ -40,13 +40,13 @@ var _ = Describe("SysdigTeamGo Controller", func() {
 			Name:      resourceName,
 			Namespace: "default", // TODO(user):Modify as needed
 		}
-		sysdigteamgo := &monitoringv1alpha1.SysdigTeamGo{}
+		sysdigteamgo := &monitoringv1alpha1.SysdigTeam{}
 
 		BeforeEach(func() {
 			By("creating the custom resource for the Kind SysdigTeamGo")
 			err := k8sClient.Get(ctx, typeNamespacedName, sysdigteamgo)
 			if err != nil && errors.IsNotFound(err) {
-				resource := &monitoringv1alpha1.SysdigTeamGo{
+				resource := &monitoringv1alpha1.SysdigTeam{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      resourceName,
 						Namespace: "default",
@@ -59,7 +59,7 @@ var _ = Describe("SysdigTeamGo Controller", func() {
 
 		AfterEach(func() {
 			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &monitoringv1alpha1.SysdigTeamGo{}
+			resource := &monitoringv1alpha1.SysdigTeam{}
 			err := k8sClient.Get(ctx, typeNamespacedName, resource)
 			Expect(err).NotTo(HaveOccurred())
 

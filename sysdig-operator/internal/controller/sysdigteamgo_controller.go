@@ -213,7 +213,7 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	facts := helpers.SetTeamFacts(req.Namespace)
 
 	// Step 1: Fetch the CR instance
-	var sysdigTeam api.SysdigTeamGo
+	var sysdigTeam api.SysdigTeam
 	if err := r.Get(ctx, req.NamespacedName, &sysdigTeam); err != nil {
 		if errors.IsNotFound(err) {
 			// CR not found, possibly deleted, return.
@@ -367,7 +367,7 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				"teamID", secureTeamID, "userID", m.UserID, "role", m.Role)
 		}
 
-		r.Log.Info("finish user", m.Name)
+		r.Log.Info("finish user", "name", m.Name)
 	}
 
 	return ctrl.Result{}, nil
@@ -375,8 +375,8 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *SysdigTeamGoReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	r.Log = ctrl.Log.WithName("controllers").WithName("SysdigTeamGo")
+	r.Log = ctrl.Log.WithName("controllers").WithName("SysdigTeam")
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&monitoringv1alpha1.SysdigTeamGo{}).
+		For(&monitoringv1alpha1.SysdigTeam{}).
 		Complete(r)
 }

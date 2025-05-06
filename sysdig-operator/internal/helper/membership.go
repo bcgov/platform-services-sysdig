@@ -68,7 +68,7 @@ func DeleteMembership(apiEndpoint, token string, teamID, userID int64) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusNoContent {
 		body, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("DeleteMembership: status %d, body %s",
 			resp.StatusCode, string(body))

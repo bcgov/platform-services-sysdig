@@ -1,0 +1,34 @@
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: sysdig-operator-go
+  namespace: openshift-bcgov-sysdig-agent
+spec:
+  nodeSelector: null
+  output:
+    to:
+      kind: DockerImage
+      name: 'artifacts.developer.gov.bc.ca/plat-util-images/sysdig-operator-go:v1'
+    pushSecret:
+      name: artifacts-platform-services
+  resources:
+    limits:
+      cpu: '1'
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+  successfulBuildsHistoryLimit: 1
+  failedBuildsHistoryLimit: 1
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+  postCommit: {}
+  source:
+    type: Git
+    git:
+      uri: https://github.com/bcgov/platform-services-sysdig.git
+      ref: sysdig-new-operator
+    contextDir: sysdig-operator
+  runPolicy: Serial

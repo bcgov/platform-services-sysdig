@@ -4,9 +4,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.16.1
-  name: sysdig-team-go.monitoring.devops.gov.bc.ca
+  name: sysdig-team-go.ops.gov.bc.ca
 spec:
-  group: monitoring.devops.gov.bc.ca
+  group: ops.gov.bc.ca
   names:
     kind: SysdigTeam
     listKind: SysdigTeamList

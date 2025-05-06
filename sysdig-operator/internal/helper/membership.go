@@ -67,8 +67,8 @@ func DeleteMembership(apiEndpoint, token string, teamID, userID int64) error {
 		return err
 	}
 	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusNoContent {
+	// both two code are fine, 422 and 204
+	if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusUnprocessableEntity {
 		body, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("DeleteMembership: status %d, body %s",
 			resp.StatusCode, string(body))
@@ -98,12 +98,13 @@ func SaveMembership(apiEndpoint, token string, teamID, userID int64, role string
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		b, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("SaveMembership: status %d, body %s", resp.StatusCode, string(b))
+	respBody, _ := io.ReadAll(resp.Body)
+	// Accept any 2xx AND also 422 Unprocessable Entity (no-op)
+	if (resp.StatusCode >= 200 && resp.StatusCode < 300) ||
+		resp.StatusCode == http.StatusUnprocessableEntity {
+		return string(respBody), nil
 	}
 	// Read response body for success path
-	respBody, _ := io.ReadAll(resp.Body)
 
-	return string(respBody), nil
+	return "", fmt.Errorf("SaveMembership: status %d, body %s", resp.StatusCode, string(respBody))
 }

@@ -34,7 +34,7 @@ import (
 	api "github.com/bcgov/platform-services-sysdig/sysdig-operator/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
 
-	monitoringv1alpha1 "github.com/bcgov/platform-services-sysdig/sysdig-operator/api/v1alpha1"
+	opsv1alpha1 "github.com/bcgov/platform-services-sysdig/sysdig-operator/api/v1alpha1"
 )
 
 // SysdigTeamGoReconciler reconciles a SysdigTeamGo object
@@ -377,6 +377,6 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 func (r *SysdigTeamGoReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	r.Log = ctrl.Log.WithName("controllers").WithName("SysdigTeam")
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&monitoringv1alpha1.SysdigTeam{}).
+		For(&opsv1alpha1.SysdigTeam{}).
 		Complete(r)
 }

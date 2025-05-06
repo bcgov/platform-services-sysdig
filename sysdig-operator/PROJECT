@@ -2,7 +2,7 @@
 # This file is used to track the info used to scaffold your project
 # and allow the plugins properly work.
 # More info: https://book.kubebuilder.io/reference/project-config.html
-domain: devops.gov.bc.ca
+domain: ops.gov.bc.ca
 layout:
 - go.kubebuilder.io/v4
 plugins:
@@ -15,7 +15,7 @@ resources:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: devops.gov.bc.ca
+  domain: ops.gov.bc.ca
   group: monitoring
   kind: SysdigTeamGo
   path: github.com/bcgov/platform-services-sysdig/api/v1alpha1

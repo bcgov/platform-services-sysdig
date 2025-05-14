@@ -8,7 +8,7 @@ spec:
   output:
     to:
       kind: DockerImage
-      name: 'artifacts.developer.gov.bc.ca/plat-util-images/sysdig-operator-go:v1'
+      name: 'artifacts.developer.gov.bc.ca/plat-util-images/sysdig-operator-go:lab'
     pushSecret:
       name: artifacts-platform-services
   resources:

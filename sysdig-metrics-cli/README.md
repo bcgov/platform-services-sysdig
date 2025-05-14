@@ -14,12 +14,8 @@ This **Sysdig Metrics Management** script makes it easy to list, disable, and en
   - Displays all metrics that are currently disabled.
 
 - **Disable or Enable Metrics**  
-  - Quickly turn off (disable) or turn on (enable) any metrics you no longer need or want to resume tracking.
-
-- **Use of `current-disabled-metrics.txt`**  
-  - A handy way to keep track of which metrics you currently have disabled or plan to disable.  
-  - You can maintain a list of metric names (one per line) in this file.  
-  - When you want to disable or enable them again, simply copy those metric names and pass them to the script or use the command syntax below.
+  - Turn off (disable) or turn on (enable) individual metrics by specifying `<jobName>` and `<metricName>`.  
+  - Bulk toggle metrics from a two-column file (`metricName` and `jobName`).
 
 ---
 
@@ -28,93 +24,105 @@ This **Sysdig Metrics Management** script makes it easy to list, disable, and en
 1. **Bash** or another compatible shell.  
 2. **cURL** for making HTTP requests.  
 3. **jq** for parsing JSON responses.  
-4. A **Sysdig API token** with the necessary permissions to manage disabled metrics.
+4. A **Sysdig API token** with permissions to manage disabled metrics.
 
 ---
 
 ## Installation
 
-1. Save the script to a file named `sysdig-metrics` (or any name you prefer).  
-2. Make it executable (for example, by running `chmod +x sysdig-metrics`).  
-3. (Optional) Move or symlink it to a directory in your `PATH` to run it globally (e.g., `/usr/local/bin`).
-
----
+1. Save the script to a file named `sysdig-metrics.sh` (or any name you prefer).  
+2. Make it executable:  
+   ```bash
+   chmod +x sysdig-metrics.sh
 
 ## Usage
 
-- **Listing disabled metrics (`-l`)**  
-  - Retrieves a list of metrics that are currently disabled in Sysdig.
-  - example `bash sysdig-metrics.sh -l`
+### List disabled metrics
+```bash
+bash sysdig-metrics.sh -l
+```
 
-- **Disabling metrics (`-d`)**  
-  - Specify one or more metric names to disable.
-  - Example: `bash sysdig-metrics.sh -d kubelet_runtime_operations_total`
+### Disable or enable a single metric
 
-- **Enabling metrics (`-e`)**  
-  - Specify one or more metric names that you previously disabled to enable them again.
-  - Example: `bash sysdig-metrics.sh -e kubelet_runtime_operations_total`
-- **Using `current-disabled-metrics.txt`**  
-  - Create or maintain this text file with a list of metric names (one per line) to keep track of your current disabled metrics or the metrics you intend to disable.  
-  - **Correct Usage**:  
-    ```bash
-    bash sysdig-metrics.sh -d $(cat current-disabled-metrics.txt)
-    ```
-    This command disables all metrics listed in `current-disabled-metrics.txt`.
+```bash
+# Disable one metric:
+bash sysdig-metrics.sh -d <jobName> <metricName>
 
----
+# Enable one metric:
+bash sysdig-metrics.sh -e <jobName> <metricName>
+```
 
-## Examples
+### Bulk disable or enable from a file
+Prepare a text file (e.g., current-disable-metrics.txt) where each line has:
 
-1. **Disable a single metric**  
-   - Disable a single metric by passing its name:
-     ```bash
-     bash sysdig-metrics.sh -d custom_metric_a
-     ```
+```bash
+metricName jobName
 
-2. **Disable multiple metrics**  
-   - Disable multiple metrics by listing them (separated by spaces):
-     ```bash
-     bash sysdig-metrics.sh -d custom_metric_a custom_metric_b custom_metric_c
-     ```
+```
 
-3. **Use `current-disabled-metrics.txt`**  
-   - Place all the metrics you want to disable (one per line) into `current-disabled-metrics.txt`. Then run:
-     ```bash
-     bash sysdig-metrics.sh -d $(cat current-disabled-metrics.txt)
-     ```
-   - This way, you don’t need to copy/paste each metric name manually every time.
+Example:
+```
+container_spec_cpu_period   k8s-cadvisor-default
+kubelet_runtime_operations_total   k8s-pods
+```
 
-4. **Enable a metric**  
-   - Re-enable a metric that was previously disabled:
-     ```bash
-     bash sysdig-metrics.sh -e custom_metric_a
-     ```
+Then Run:
 
-5. **List current disabled metrics**  
-   - Run with the list option to see which metrics are disabled:
-     ```bash
-     bash sysdig-metrics.sh -l
-     ```
+```bash
+bash sysdig-metrics.sh -d metrics.txt  # disable all listed
+bash sysdig-metrics.sh -e metrics.txt  # enable all listed
 
----
+```
 
-## Troubleshooting
 
-1. **No token found**  
-   - The script will prompt you for a token if one isn’t located in `~/.sysdig_metrics_token`.
+## Example
+#### Disable a single metric:
 
-2. **Missing dependencies**  
-   - Make sure both cURL and jq are installed and available in your `PATH`.
+```
+bash sysdig-metrics.sh -d k8s-pods http_roundtrip_duration_seconds_bucket
 
-3. **Permission errors**  
-   - Ensure the script has execute permissions (e.g., `chmod +x sysdig-metrics`).
-   - Verify your API token has the required privileges in Sysdig.
+```
 
-4. **Unauthorized / 403**  
-   - Confirm your API token is valid and has permissions to modify disabled metrics.
+#### Enable a single metric:
 
----
+```
+bash sysdig-metrics.sh -e k8s-pods http_roundtrip_duration_seconds_bucket
 
+```
+
+#### Enble a buck metcis:
+```
+bash sysdig-metrics.sh -d current-disabled-metrics.txt
+
+```
+
+#### Disable a bulk of metrics:
+```
+bash sysdig-metrics.sh -e current-disabled-metrics.txt
+
+```
+
+##### List of current disabled metrcis:
+```
+bash sysdig-metrics.sh -l
+```
+
+## Trouble shooting
+* No token found
+If you see a prompt for a token, ensure your ~/.sysdig_metrics_token file exists or enter a valid API token.
+
+* Missing dependencies
+Verify curl and jq are installed and in your PATH.
+
+* Permission errors
+Confirm the script is executable (chmod +x sysdig-metrics.sh) and that your API token has the necessary privileges.
+
+* Invalid request or 400/403 errors
+Check that you provided a valid <jobName> and <metricName>. Use -l to list currently disabled metrics and verify syntax.
+
+## TODO:
+
+Some metrics in k8s-default was disabled by my mistake and unable to fix from my side, Talk to Dusin to figure out how to remove those. No bad effect so far.
 ## Contributing
 
 If you’d like to contribute:

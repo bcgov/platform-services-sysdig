@@ -9,6 +9,7 @@
     namespaces: ["{{ ns_prefix}}-tools", "{{ ns_prefix}}-dev","{{ ns_prefix }}-test", "{{ ns_prefix }}-prod"]
     prod_namespace: "{{ ns_prefix }}-prod"
     container_team_name:  "{{ ns_prefix }}-team"
+    container_secure_team_name:  "{{ ns_prefix }}-team-secure"
     host_team_name: "{{ ns_prefix }}-team-persistent-storage" # keeping for deletion process
     container_team_exists: false
     host_team_exists: false

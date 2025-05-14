@@ -1,79 +1,79 @@
-container_spec_cpu_period
-kyverno_admission_review_duration_seconds_bucket
-kubelet_container_log_filesystem_used_bytes
-kubelet_volume_metric_collection_duration_seconds_bucket
-authentication_token_cache_request_duration_seconds_bucket
-kubelet_runtime_operations_duration_seconds_bucket
-fluentd_output_status_slow_flush_count
-csi_operations_seconds_bucket
-kubernetes_feature_enabled
-volume_operation_total_seconds_bucket
-kubelet_http_requests_duration_seconds_bucket
-erlang_vm_allocators
-konglog_service_agent_counter
-jvm_memory_pool_bytes_init
-jvm_memory_pool_allocated_bytes_created
-jvm_memory_pool_bytes_used
-jvm_memory_pool_bytes_max
-jvm_memory_pool_bytes_max
-jvm_memory_pool_allocated_bytes_total
-jvm_memory_pool_bytes_committed
-java_lang_PS_Scavenge_LastGcInfo_memoryUsageBeforeGc_init
-java_lang_PS_Scavenge_LastGcInfo_memoryUsageAfterGc_max
-java_lang_PS_Scavenge_LastGcInfo_memoryUsageAfterGc_committed
-java_lang_PS_Scavenge_LastGcInfo_memoryUsageBeforeGc_used
-java_lang_PS_Scavenge_LastGcInfo_memoryUsageAfterGc_used
-java_lang_PS_Scavenge_LastGcInfo_memoryUsageBeforeGc_max
-java_lang_PS_Scavenge_LastGcInfo_memoryUsageAfterGc_init
-java_lang_PS_Scavenge_LastGcInfo_memoryUsageBeforeGc_committed
-java_lang_PS_MarkSweep_LastGcInfo_memoryUsageAfterGc_committed
-java_lang_PS_MarkSweep_LastGcInfo_memoryUsageBeforeGc_init
-java_lang_PS_MarkSweep_LastGcInfo_memoryUsageBeforeGc_committed
-java_lang_PS_MarkSweep_LastGcInfo_memoryUsageAfterGc_max
-java_lang_PS_MarkSweep_LastGcInfo_memoryUsageAfterGc_init
-java_lang_PS_MarkSweep_LastGcInfo_memoryUsageBeforeGc_max
-java_lang_PS_MarkSweep_LastGcInfo_memoryUsageBeforeGc_used
-java_lang_PS_MarkSweep_LastGcInfo_memoryUsageAfterGc_used
-jvm_threads_state
-redis_commands_latencies_usec_bucket
-fluentd_output_status_retry_count
-fluentd_output_status_num_errors
-spring_data_repository_invocations_seconds_count
-spring_data_repository_invocations_seconds_max
-spring_data_repository_invocations_seconds_count
-workqueue_work_duration_seconds_bucket
-workqueue_queue_duration_seconds_bucket
-rest_client_exec_plugin_certificate_rotation_age_bucket
-container_cpu_cfs_periods_total
-container_cpu_cfs_throttled_seconds_total
-container_cpu_cfs_throttled_periods_total
-coredns_forward_request_duration_seconds_bucket
-rest_client_request_duration_seconds_bucket
-rest_client_rate_limiter_duration_seconds_bucket
-rest_client_request_size_bytes_bucket
-rest_client_response_size_bytes_bucket
-kyverno_client_queries_total
-kyverno_admission_review_duration_seconds_count
-kyverno_admission_requests_total
-caddy_http_request_duration_seconds_bucket
-caddy_http_response_duration_seconds_bucket
-kubelet_cgroup_manager_duration_seconds_bucket
-resilience4j_circuitbreaker_calls_seconds_bucket
-storage_operation_duration_seconds_sum
-caddy_http_response_size_bytes_bucket
-caddy_http_request_size_bytes_bucket
-coredns_dns_request_size_bytes_bucket
-coredns_dns_request_size_bytes_bucket
-coredns_dns_request_duration_seconds_bucket
-kubelet_pod_start_sli_duration_seconds_bucket
-konglog_service_referer_counter
-kubelet_runtime_operations_duration_seconds_sum
-kubelet_runtime_operations_duration_seconds_count
-kubelet_runtime_operations_total
-fluentd_output_status_emit_count
-fluentd_output_status_rollback_count
-fluentd_output_status_flush_time_count
-fluentd_output_status_emit_records
-fluentd_output_status_retry_wait
-spring_data_repository_invocations_seconds_sum
-kyverno_policy_results_total
+# metricName                                                  jobName
+container_spec_cpu_period                                     k8s-cadvisor-default
+kyverno_admission_review_duration_seconds_bucket              k8s-pods
+kubelet_container_log_filesystem_used_bytes                   k8s-pods
+kubelet_volume_metric_collection_duration_seconds_bucket      k8s-pods
+authentication_token_cache_request_duration_seconds_bucket    openshift-apiserver-default
+kubelet_runtime_operations_duration_seconds_bucket            k8s-pods
+fluentd_output_status_slow_flush_count                        openshift-fluentd-default
+csi_operations_seconds_bucket                                 k8s-pods
+kubernetes_feature_enabled                                    k8s-pods
+volume_operation_total_seconds_bucket                         k8s-pods
+kubelet_http_requests_duration_seconds_bucket                 k8s-pods
+erlang_vm_allocators                                          k8s-pods
+konglog_service_agent_counter                                 k8s-pods
+jvm_memory_pool_bytes_init                                    k8s-pods
+jvm_memory_pool_allocated_bytes_created                       k8s-pods
+jvm_memory_pool_bytes_used                                    k8s-pods
+jvm_memory_pool_bytes_max                                     k8s-pods
+jvm_memory_pool_bytes_max                                     k8s-pods
+jvm_memory_pool_allocated_bytes_total                         k8s-pods
+jvm_memory_pool_bytes_committed                               k8s-pods
+java_lang_PS_Scavenge_LastGcInfo_memoryUsageBeforeGc_init     k8s-pods
+java_lang_PS_Scavenge_LastGcInfo_memoryUsageAfterGc_max       k8s-pods
+java_lang_PS_Scavenge_LastGcInfo_memoryUsageAfterGc_committed k8s-pods
+java_lang_PS_Scavenge_LastGcInfo_memoryUsageBeforeGc_used     k8s-pods
+java_lang_PS_Scavenge_LastGcInfo_memoryUsageAfterGc_used      k8s-pods
+java_lang_PS_Scavenge_LastGcInfo_memoryUsageBeforeGc_max      k8s-pods
+java_lang_PS_Scavenge_LastGcInfo_memoryUsageAfterGc_init      k8s-pods
+java_lang_PS_Scavenge_LastGcInfo_memoryUsageBeforeGc_committed k8s-pods
+java_lang_PS_MarkSweep_LastGcInfo_memoryUsageAfterGc_committed k8s-pods
+java_lang_PS_MarkSweep_LastGcInfo_memoryUsageBeforeGc_init    k8s-pods
+java_lang_PS_MarkSweep_LastGcInfo_memoryUsageBeforeGc_committed k8s-pods
+java_lang_PS_MarkSweep_LastGcInfo_memoryUsageAfterGc_max      k8s-pods
+java_lang_PS_MarkSweep_LastGcInfo_memoryUsageBeforeGc_max     k8s-pods
+java_lang_PS_MarkSweep_LastGcInfo_memoryUsageBeforeGc_used    k8s-pods
+java_lang_PS_MarkSweep_LastGcInfo_memoryUsageAfterGc_used     k8s-pods
+jvm_threads_state                                             k8s-pods
+redis_commands_latencies_usec_bucket                          redis-default
+fluentd_output_status_retry_count                             openshift-fluentd-default
+fluentd_output_status_num_errors                              openshift-fluentd-default
+spring_data_repository_invocations_seconds_count              k8s-pods
+spring_data_repository_invocations_seconds_max                k8s-pods
+spring_data_repository_invocations_seconds_count              k8s-pods
+workqueue_work_duration_seconds_bucket                        k8s-pods
+workqueue_queue_duration_seconds_bucket                       k8s-pods
+rest_client_exec_plugin_certificate_rotation_age_bucket       k8s-pods
+container_cpu_cfs_periods_total                               k8s-cadvisor-default
+container_cpu_cfs_throttled_seconds_total                     k8s-cadvisor-default
+container_cpu_cfs_throttled_periods_total                     k8s-cadvisor-default
+coredns_forward_request_duration_seconds_bucket               openshift-dns-default
+rest_client_request_duration_seconds_bucket                   k8s-pods
+rest_client_rate_limiter_duration_seconds_bucket               k8s-pods
+rest_client_request_size_bytes_bucket                         k8s-pods
+rest_client_response_size_bytes_bucket                        k8s-pods
+kyverno_client_queries_total                                  k8s-pods
+kyverno_admission_review_duration_seconds_count               k8s-pods
+kyverno_admission_requests_total                              k8s-pods
+caddy_http_request_duration_seconds_bucket                    k8s-pods
+caddy_http_response_duration_seconds_bucket                   k8s-pods
+kubelet_cgroup_manager_duration_seconds_bucket                k8s-pods
+resilience4j_circuitbreaker_calls_seconds_bucket              k8s-pods
+storage_operation_duration_seconds_sum                        k8s-pods
+caddy_http_response_size_bytes_bucket                         k8s-pods
+caddy_http_request_size_bytes_bucket                          k8s-pods
+coredns_dns_request_size_bytes_bucket                         openshift-dns-default
+coredns_dns_request_size_bytes_bucket                         openshift-dns-default
+coredns_dns_request_duration_seconds_bucket                   openshift-dns-default
+kubelet_pod_start_sli_duration_seconds_bucket                 k8s-pods
+konglog_service_referer_counter                               k8s-pods
+kubelet_runtime_operations_duration_seconds_sum               k8s-pods
+kubelet_runtime_operations_duration_seconds_count             k8s-pods
+kubelet_runtime_operations_total                              k8s-pods
+fluentd_output_status_emit_count                              openshift-fluentd-default
+fluentd_output_status_rollback_count                          openshift-fluentd-default
+fluentd_output_status_flush_time_count                        openshift-fluentd-default
+fluentd_output_status_emit_records                            openshift-fluentd-default
+fluentd_output_status_retry_wait                              openshift-fluentd-default
+spring_data_repository_invocations_seconds_sum                k8s-pods
+kyverno_policy_results_total                                  k8s-pods

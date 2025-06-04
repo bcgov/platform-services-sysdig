@@ -1,16 +1,16 @@
-# permissions for end users to view sysdig-team-go.
+# permissions for end users to view sysdig-teams.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: sysdig-operator
     app.kubernetes.io/managed-by: kustomize
-  name: sysdigteamgo-viewer-role
+  name: sysdigteams-viewer-role
 rules:
 - apiGroups:
   - monitoring.devops.gov.bc.ca
   resources:
-  - sysdig-team-go
+  - sysdig-teams
   verbs:
   - get
   - list
@@ -18,6 +18,6 @@ rules:
 - apiGroups:
   - monitoring.devops.gov.bc.ca
   resources:
-  - sysdig-team-go/status
+  - sysdig-teams/status
   verbs:
   - get

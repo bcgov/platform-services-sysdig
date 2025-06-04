@@ -37,6 +37,8 @@ import (
 	opsv1alpha1 "github.com/bcgov/platform-services-sysdig/sysdig-operator/api/v1alpha1"
 )
 
+const sysdigTeamFinalizer = "monitoring.devops.gov.bc.ca/finalizer"
+
 // SysdigTeamGoReconciler reconciles a SysdigTeamGo object
 type SysdigTeamGoReconciler struct {
 	client.Client
@@ -202,29 +204,70 @@ func (r *SysdigTeamGoReconciler) syncMemberships(
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.19.0/pkg/reconcile
 func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	logger := log.FromContext(ctx) // Use a local logger
 
 	apiEndpoint := os.Getenv("SYSDIG_API_ENDPOINT")
 	token := os.Getenv("SYSDIG_TOKEN")
 
-	fmt.Printf("DEBUG: Reconciling SysdigTeamGo: %s\n", req.NamespacedName)
-
-	// Step 0: set fact
-	facts := helpers.SetTeamFacts(req.Namespace)
+	logger.Info("Reconciling SysdigTeamGo", "Request.Namespace", req.Namespace, "Request.Name", req.Name)
 
 	// Step 1: Fetch the CR instance
 	var sysdigTeam api.SysdigTeam
 	if err := r.Get(ctx, req.NamespacedName, &sysdigTeam); err != nil {
 		if errors.IsNotFound(err) {
-			// CR not found, possibly deleted, return.
+			logger.Info("SysdigTeamGo resource not found. Ignoring since object must be deleted.")
 			return ctrl.Result{}, nil
 		}
+		logger.Error(err, "Failed to get SysdigTeamGo resource")
 		return ctrl.Result{}, err
 	}
-	// step 1.5 verify credentials
+
+	// Handle deletion: Check if the DeletionTimestamp is set
+	if !sysdigTeam.ObjectMeta.DeletionTimestamp.IsZero() {
+		if containsString(sysdigTeam.ObjectMeta.Finalizers, sysdigTeamFinalizer) {
+			logger.Info("SysdigTeamGo resource is being deleted, performing cleanup...")
+
+			// Perform cleanup: Delete Sysdig teams
+			if sysdigTeam.Status.MonitorTeamID != 0 {
+				logger.Info("Deleting Monitor team", "ID", sysdigTeam.Status.MonitorTeamID)
+				if err := helpers.DeleteTeam(apiEndpoint, token, sysdigTeam.Status.MonitorTeamID); err != nil {
+					// Log error but attempt to continue to delete the other team and remove finalizer
+					logger.Error(err, "Failed to delete Monitor team", "ID", sysdigTeam.Status.MonitorTeamID)
+				}
+			}
+			if sysdigTeam.Status.SecureTeamID != 0 {
+				logger.Info("Deleting Secure team", "ID", sysdigTeam.Status.SecureTeamID)
+				if err := helpers.DeleteTeam(apiEndpoint, token, sysdigTeam.Status.SecureTeamID); err != nil {
+					logger.Error(err, "Failed to delete Secure team", "ID", sysdigTeam.Status.SecureTeamID)
+				}
+			}
+
+			// Remove the finalizer
+			sysdigTeam.ObjectMeta.Finalizers = removeString(sysdigTeam.ObjectMeta.Finalizers, sysdigTeamFinalizer)
+			if err := r.Update(ctx, &sysdigTeam); err != nil {
+				logger.Error(err, "Failed to remove finalizer from SysdigTeamGo resource")
+				return ctrl.Result{}, err
+			}
+			logger.Info("Successfully removed finalizer and cleaned up Sysdig teams.")
+		}
+		return ctrl.Result{}, nil // Stop reconciliation as the object is being deleted
+	}
+
+	// Add finalizer if it doesn't exist
+	if !containsString(sysdigTeam.ObjectMeta.Finalizers, sysdigTeamFinalizer) {
+		sysdigTeam.ObjectMeta.Finalizers = append(sysdigTeam.ObjectMeta.Finalizers, sysdigTeamFinalizer)
+		if err := r.Update(ctx, &sysdigTeam); err != nil {
+			logger.Error(err, "Failed to add finalizer to SysdigTeam resource")
+			return ctrl.Result{}, err
+		}
+		logger.Info("Added finalizer to SysdigTeamGo resource")
+		return ctrl.Result{Requeue: true}, nil // Requeue to ensure status update occurs after finalizer addition
+	}
+
+	// Step 1.5 verify credentials
 	if apiEndpoint == "" || token == "" {
 		errMsg := "Environment variables SYSDIG_API_ENDPOINT and/or SYSDIG_TOKEN are not set"
-		fmt.Printf("ERROR: %s\n", errMsg)
+		logger.Error(nil, errMsg) // Use logger for errors
 		sysdigTeam.Status.Conditions = []api.Condition{
 			{
 				Type:    "SysdigCredentials",
@@ -233,20 +276,22 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				Message: errMsg,
 			},
 		}
-		_ = r.Status().Update(ctx, &sysdigTeam)
-		return ctrl.Result{}, fmt.Errorf(errMsg)
+		if err := r.Status().Update(ctx, &sysdigTeam); err != nil {
+			logger.Error(err, "Failed to update SysdigTeamGo status for missing credentials")
+		}
+		return ctrl.Result{}, fmt.Errorf(errMsg) // Return error to requeue
 	}
 
-	// STEP 2 varify if object is in tools namespace
+	// STEP 2 verify if object is in tools namespace
 	match, err := regexp.MatchString("(?i).*-tools$", req.Namespace)
 	if err != nil {
+		logger.Error(err, "Regex validation error for namespace")
 		return ctrl.Result{}, fmt.Errorf("regex validation error: %v", err)
 	}
 
 	if !match {
 		errMsg := "Object must be deployed in a namespace ending with '-tools'"
-		fmt.Printf("ERROR: %s\n", errMsg)
-
+		logger.Info(errMsg, "Namespace", req.Namespace) // Log as info, not necessarily an error for the controller
 		sysdigTeam.Status.Conditions = []api.Condition{
 			{
 				Type:    "NamespaceValidation",
@@ -255,14 +300,18 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				Message: errMsg,
 			},
 		}
-		_ = r.Status().Update(ctx, &sysdigTeam)
-
-		return ctrl.Result{}, nil
+		if err := r.Status().Update(ctx, &sysdigTeam); err != nil {
+			logger.Error(err, "Failed to update SysdigTeamGo status for invalid namespace")
+		}
+		return ctrl.Result{}, nil // Don't requeue, this is a configuration issue
 	}
 
-	fmt.Printf("Namespace %s passed validation.\n", req.Namespace)
+	logger.Info("Namespace validation passed", "Namespace", req.Namespace)
 
-	// 3) Build teamUserList from the CR’s spec
+	// Step 0: set fact (Moved after initial checks and finalizer logic)
+	facts := helpers.SetTeamFacts(req.Namespace)
+
+	// 3) Build teamUserList from the CR's spec
 	teamUserList := make([]helpers.TeamUserRole, 0, len(sysdigTeam.Spec.Team.Users))
 	for _, u := range sysdigTeam.Spec.Team.Users {
 		teamUserList = append(teamUserList, helpers.TeamUserRole{
@@ -312,11 +361,26 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		facts.Namespaces,
 	)
 	if err != nil {
+		logger.Error(err, "Failed to sync Monitor team")
+		// Update status with error condition before returning
+		sysdigTeam.Status.Conditions = []api.Condition{
+			{Type: "Ready", Status: "False", Reason: "TeamSyncFailed", Message: "Failed to sync Monitor team: " + err.Error()},
+		}
+		if statusUpdateErr := r.Status().Update(ctx, &sysdigTeam); statusUpdateErr != nil {
+			logger.Error(statusUpdateErr, "Failed to update status for Monitor team sync failure")
+		}
 		return ctrl.Result{}, err
 	}
+	sysdigTeam.Status.MonitorTeamID = monitorTeamID // Store MonitorTeamID
 
-	// make sure membership is the same as what sysdig have
 	if err := r.syncMemberships(apiEndpoint, token, monitorTeamID, teamUsersAndRoles, "monitor"); err != nil {
+		logger.Error(err, "Failed to sync Monitor team memberships")
+		sysdigTeam.Status.Conditions = []api.Condition{
+			{Type: "Ready", Status: "False", Reason: "MembershipSyncFailed", Message: "Failed to sync Monitor team memberships: " + err.Error()},
+		}
+		if statusUpdateErr := r.Status().Update(ctx, &sysdigTeam); statusUpdateErr != nil {
+			logger.Error(statusUpdateErr, "Failed to update status for Monitor team membership sync failure")
+		}
 		return ctrl.Result{}, err
 	}
 
@@ -330,47 +394,102 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		facts.Namespaces,
 	)
 	if err != nil {
+		logger.Error(err, "Failed to sync Secure team")
+		sysdigTeam.Status.Conditions = []api.Condition{
+			{Type: "Ready", Status: "False", Reason: "TeamSyncFailed", Message: "Failed to sync Secure team: " + err.Error()},
+		}
+		if statusUpdateErr := r.Status().Update(ctx, &sysdigTeam); statusUpdateErr != nil {
+			logger.Error(statusUpdateErr, "Failed to update status for Secure team sync failure")
+		}
 		return ctrl.Result{}, err
 	}
+	sysdigTeam.Status.SecureTeamID = secureTeamID // Store SecureTeamID
 
-	fmt.Printf("check ID's Monitoring: %d, Secure:%d\n", monitorTeamID, secureTeamID)
-	// make sure membership is the same as what sysdig have
+	logger.Info("Successfully synced teams", "MonitorTeamID", monitorTeamID, "SecureTeamID", secureTeamID)
+
 	if err := r.syncMemberships(apiEndpoint, token, secureTeamID, teamUsersAndRoles, "secure"); err != nil {
+		logger.Error(err, "Failed to sync Secure team memberships")
+		sysdigTeam.Status.Conditions = []api.Condition{
+			{Type: "Ready", Status: "False", Reason: "MembershipSyncFailed", Message: "Failed to sync Secure team memberships: " + err.Error()},
+		}
+		if statusUpdateErr := r.Status().Update(ctx, &sysdigTeam); statusUpdateErr != nil {
+			logger.Error(statusUpdateErr, "Failed to update status for Secure team membership sync failure")
+		}
 		return ctrl.Result{}, err
 	}
-	// 7) Assign or update memberships for each user in both teams
-	for _, m := range teamUsersAndRoles {
-		// Monitor team membership
+	// 7) Assign or update memberships for each user in both teams - THIS SECTION SEEMS REDUNDANT
+	// The syncMemberships function already ensures the desired state.
+	// The loop below re-applies SaveMembership, which might be okay for idempotency but syncMemberships should handle it.
+	// I will comment it out for now as syncMemberships is designed to be the source of truth for memberships.
+	/*
+		for _, m := range teamUsersAndRoles {
+			// Monitor team membership
+			_, Monitorerr := helpers.SaveMembership(
+				apiEndpoint,
+				token,
+				monitorTeamID,
+				m.UserID,
+				m.Role,
+			)
+			if Monitorerr != nil {
+				r.Log.Error(err, "SaveMembership failed for monitor team",
+					"teamID", monitorTeamID, "userID", m.UserID, "role", m.Role)
+			}
 
-		_, Monitorerr := helpers.SaveMembership(
-			apiEndpoint,
-			token,
-			monitorTeamID,
-			m.UserID,
-			m.Role,
-		)
-		if Monitorerr != nil {
-			r.Log.Error(err, "SaveMembership failed for monitor team",
-				"teamID", monitorTeamID, "userID", m.UserID, "role", m.Role)
+			// Secure team membership
+			_, Secureerr := helpers.SaveMembership(
+				apiEndpoint,
+				token,
+				secureTeamID,
+				m.UserID,
+				m.Role,
+			)
+			if Secureerr != nil {
+				r.Log.Error(err, "SaveMembership failed for secure team",
+					"teamID", secureTeamID, "userID", m.UserID, "role", m.Role)
+			}
+
+			r.Log.Info("finish user", "name", m.Name)
 		}
+	*/
 
-		// Secure team membership
-		_, Secureerr := helpers.SaveMembership(
-			apiEndpoint,
-			token,
-			secureTeamID,
-			m.UserID,
-			m.Role,
-		)
-		if Secureerr != nil {
-			r.Log.Error(err, "SaveMembership failed for secure team",
-				"teamID", secureTeamID, "userID", m.UserID, "role", m.Role)
-		}
-
-		r.Log.Info("finish user", "name", m.Name)
+	// Update status to Ready
+	sysdigTeam.Status.Conditions = []api.Condition{
+		{
+			Type:    "Ready",
+			Status:  "True",
+			Reason:  "Reconciled",
+			Message: "Sysdig teams and memberships reconciled successfully",
+		},
+	}
+	if err := r.Status().Update(ctx, &sysdigTeam); err != nil {
+		logger.Error(err, "Failed to update SysdigTeam status to Ready")
+		return ctrl.Result{}, err
 	}
 
+	logger.Info("Successfully reconciled SysdigTeam")
 	return ctrl.Result{}, nil
+}
+
+// containsString checks if a slice of strings contains a specific string.
+func containsString(slice []string, s string) bool {
+	for _, item := range slice {
+		if item == s {
+			return true
+		}
+	}
+	return false
+}
+
+// removeString removes a specific string from a slice of strings.
+func removeString(slice []string, s string) []string {
+	result := []string{}
+	for _, item := range slice {
+		if item != s {
+			result = append(result, item)
+		}
+	}
+	return result
 }
 
 // SetupWithManager sets up the controller with the Manager.

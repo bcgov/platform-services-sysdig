@@ -41,23 +41,25 @@ type UserSpec struct {
 }
 
 // SysdigTeamGoStatus defines the observed state of SysdigTeamGo
-type SysdigTeamGoStatus struct {
+type SysdigTeamStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Conditions []Condition `json:"conditions,omitempty"`
+	MonitorTeamID int64       `json:"monitorTeamID,omitempty"`
+	SecureTeamID  int64       `json:"secureTeamID,omitempty"`
+	Conditions    []Condition `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:path=sysdig-team-go
+// +kubebuilder:resource:path=sysdig-teams
 
 // SysdigTeamGo is the Schema for the sysdig-team-go API
 type SysdigTeam struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   SysdigTeamGoSpec   `json:"spec,omitempty"`
-	Status SysdigTeamGoStatus `json:"status,omitempty"`
+	Spec   SysdigTeamGoSpec `json:"spec,omitempty"`
+	Status SysdigTeamStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true

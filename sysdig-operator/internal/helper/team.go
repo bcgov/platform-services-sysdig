@@ -209,6 +209,32 @@ func postTeam(url, token string, body interface{}) (int64, error) {
 	return created.ID, nil
 }
 
+// DeleteTeam deletes a team by its ID from Sysdig.
+func DeleteTeam(apiEndpoint, token string, teamID int64) error {
+	url := fmt.Sprintf("%s/platform/v1/teams/%d", apiEndpoint, teamID)
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create DeleteTeam request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to execute DeleteTeam request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK { // Sysdig API might return 200 or 204 for successful deletion
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("DeleteTeam request failed: status %d, body %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	fmt.Printf("Successfully deleted team with ID %d\n", teamID)
+	return nil
+}
+
 // we don't update team. as we use membership api to manage access. But just leave it there in case we want to add more function in the future
 // func UpdateTeam(apiEndpoint, token, name, description string, id int64, version int, namespaces []string) (int64, error) {
 // 	url := fmt.Sprintf("%s/platform/v1/teams/%d", apiEndpoint, id)

@@ -4,13 +4,13 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.16.1
-  name: sysdig-team-go.ops.gov.bc.ca
+  name: sysdig-teams.ops.gov.bc.ca
 spec:
   group: ops.gov.bc.ca
   names:
     kind: SysdigTeam
     listKind: SysdigTeamList
-    plural: sysdig-team-go
+    plural: sysdig-teams
     singular: sysdigteam
   scope: Namespaced
   versions:
@@ -63,9 +63,6 @@ spec:
             description: SysdigTeamGoStatus defines the observed state of SysdigTeamGo
             properties:
               conditions:
-                description: |-
-                  INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-                  Important: Run "make" to regenerate code after modifying this file
                 items:
                   properties:
                     message:
@@ -78,6 +75,15 @@ spec:
                       type: string
                   type: object
                 type: array
+              monitorTeamID:
+                description: |-
+                  INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
+                  Important: Run "make" to regenerate code after modifying this file
+                format: int64
+                type: integer
+              secureTeamID:
+                format: int64
+                type: integer
             type: object
         type: object
     served: true

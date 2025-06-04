@@ -5,6 +5,7 @@
 // TODO(user): An in-depth paragraph about your project and overview of use
 
 ## Getting Started
+make manifests && make install run
 
 ### Prerequisites
 - go version v1.22.0+

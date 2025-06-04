@@ -1,16 +1,16 @@
-# permissions for end users to edit sysdig-team-go.
+# permissions for end users to edit sysdig-teams.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: sysdig-operator
     app.kubernetes.io/managed-by: kustomize
-  name: sysdigteamgo-editor-role
+  name: sysdigteams-editor-role
 rules:
 - apiGroups:
   - monitoring.devops.gov.bc.ca
   resources:
-  - sysdig-team
+  - sysdig-teams
   verbs:
   - create
   - delete
@@ -22,6 +22,6 @@ rules:
 - apiGroups:
   - monitoring.devops.gov.bc.ca
   resources:
-  - sysdig-team/status
+  - sysdig-teams/status
   verbs:
-  - get
+  - get 

@@ -81,6 +81,25 @@ func (r *SysdigTeamGoReconciler) syncOneTeam(
 		}
 
 		r.Log.Info("Created Sysdig team", "product", product, "name", teamName, "id", id)
+
+		// After creating a team, create the associated dashboard.
+		if product == "monitor" && len(namespaces) > 0 {
+			dashboardApiEndpoint := os.Getenv("SYSDIG_DASHBOARD_API_ENDPOINT")
+			if dashboardApiEndpoint == "" {
+				dashboardApiEndpoint = "https://app.sysdigcloud.com" // Default if not set
+			}
+
+			r.Log.Info("Attempting to create default dashboard for new monitor team", "teamID", id)
+			// We use the first namespace in the list for the dashboard scope.
+			if err := helpers.CreateDashboard(dashboardApiEndpoint, token, id, namespaces[0]); err != nil {
+				// Log the dashboard creation error as a warning but don't fail the reconciliation,
+				// as the team itself was created successfully.
+				r.Log.Error(err, "Warning: failed to create default dashboard for team", "teamID", id)
+			} else {
+				r.Log.Info("Successfully created default dashboard for team", "teamID", id)
+			}
+		}
+
 		return id, nil
 	} else {
 		// we don't update team. as we use membership api to manage access.

@@ -1,0 +1,662 @@
+{
+    "dashboard": {
+      "teamId": __TEAM_ID__,
+      "name": "Template - Resources Quota Approve Dashboard",
+      "panels": [
+        {
+          "id": 2,
+          "type": "advancedTimechart",
+          "name": "CPU USAGE",
+          "description": "",
+          "nullValueDisplayText": null,
+          "links": null,
+          "advancedQueries": [
+            {
+              "query": "sum(rate(sysdig_container_cpu_cores_used{$__scope}[5m])) or vector(0)",
+              "enabled": true,
+              "displayInfo": {
+                "displayName": "CPU total usage ",
+                "timeSeriesDisplayNameTemplate": "",
+                "type": "lines"
+              },
+              "format": {
+                "unit": "number",
+                "inputFormat": "1",
+                "displayFormat": "1",
+                "decimals": null,
+                "yAxis": "auto",
+                "nullValueDisplayMode": "connectDotted",
+                "minInterval": null
+              },
+              "compareTo": { "enabled": false, "delta": 1, "timeFormat": "day" }
+            },
+            {
+              "query": "sum(kube_resourcequota_sysdig_limits_cpu_used{$__scope,kube_resourcequota_name='compute-long-running-quota'}) or vector(0)",
+              "enabled": true,
+              "displayInfo": {
+                "displayName": "",
+                "timeSeriesDisplayNameTemplate": "CPU limit used in namespace",
+                "type": "lines"
+              },
+              "format": {
+                "unit": "number",
+                "inputFormat": "1",
+                "displayFormat": "auto",
+                "decimals": null,
+                "yAxis": "auto",
+                "nullValueDisplayMode": "connectDotted",
+                "minInterval": null
+              },
+              "compareTo": { "enabled": false, "delta": 1, "timeFormat": "day" }
+            },
+            {
+              "query": "abs(kube_resourcequota_sysdig_limits_cpu_hard{$__scope}) or vector(0)",
+              "enabled": true,
+              "displayInfo": {
+                "displayName": "CPU Limit hard",
+                "timeSeriesDisplayNameTemplate": "",
+                "type": "lines"
+              },
+              "format": {
+                "unit": "number",
+                "inputFormat": "1",
+                "displayFormat": "auto",
+                "decimals": null,
+                "yAxis": "auto",
+                "nullValueDisplayMode": "connectDotted",
+                "minInterval": null
+              },
+              "compareTo": { "enabled": false, "delta": 1, "timeFormat": "day" }
+            }
+          ],
+          "legendConfiguration": {
+            "enabled": true,
+            "position": "bottom",
+            "layout": "table",
+            "showCurrent": true,
+            "showMax": null,
+            "showMin": null,
+            "width": null,
+            "height": null
+          },
+          "axesConfiguration": {
+            "bottom": { "enabled": true },
+            "left": {
+              "enabled": true,
+              "displayName": null,
+              "unit": "auto",
+              "displayFormat": "auto",
+              "decimals": null,
+              "minValue": 0.0,
+              "maxValue": null,
+              "minInputFormat": "1",
+              "maxInputFormat": "1",
+              "scale": "linear"
+            },
+            "right": {
+              "enabled": true,
+              "displayName": null,
+              "unit": "auto",
+              "displayFormat": "auto",
+              "decimals": null,
+              "minValue": 0.0,
+              "maxValue": null,
+              "minInputFormat": "1",
+              "maxInputFormat": "1",
+              "scale": "linear"
+            }
+          }
+        },
+        {
+          "id": 4,
+          "type": "advancedNumber",
+          "name": "CPU utilization(usage/request)",
+          "description": "",
+          "nullValueDisplayText": null,
+          "links": null,
+          "advancedQueries": [
+            {
+              "query": "sum (sysdig_container_cpu_cores_used{$__scope}) / sum(kube_resourcequota_sysdig_requests_cpu_used{$__scope,kube_resourcequota_name='compute-long-running-quota'}) * 100\n\n\n",
+              "enabled": true,
+              "displayInfo": {
+                "displayName": null,
+                "timeSeriesDisplayNameTemplate": "",
+                "type": "lines"
+              },
+              "format": {
+                "unit": "%",
+                "inputFormat": "0-100",
+                "displayFormat": "auto",
+                "decimals": null,
+                "yAxis": "auto",
+                "nullValueDisplayMode": "connectDotted",
+                "minInterval": null
+              },
+              "compareTo": { "enabled": false, "delta": 1, "timeFormat": "day" }
+            }
+          ],
+          "numberThresholds": {
+            "useDefaults": null,
+            "values": [],
+            "base": { "severity": "none", "displayText": "" }
+          }
+        },
+        {
+          "id": 5,
+          "type": "advancedToplist",
+          "name": "Top 20 % CPU Limit Used by Container",
+          "description": "",
+          "nullValueDisplayText": "No containers using >75% of their CPU limits",
+          "links": null,
+          "advancedQueries": [
+            {
+              "query": "topk(20, sum by (container, kube_pod_name,kube_cluster_name,kube_namespace_name,kube_workload_name)(\n\nrate(sysdig_container_cpu_cores_used{kube_namespace_name=~$namespace,kube_cluster_name=~$cluster}[$__interval]))\n\n/\n\nsum by (container,kube_pod_name,kube_cluster_name,kube_namespace_name,kube_workload_name)(kube_pod_container_resource_limits{kube_namespace_name=~$namespace,kube_cluster_name=~$cluster,resource=\"cpu\"}))",
+              "enabled": true,
+              "displayInfo": {
+                "displayName": "Container < Pod < Workload < Namespace < Cluster",
+                "timeSeriesDisplayNameTemplate": "",
+                "type": "lines"
+              },
+              "format": {
+                "unit": "%",
+                "inputFormat": "0-1",
+                "displayFormat": "auto",
+                "decimals": null,
+                "yAxis": "auto",
+                "nullValueDisplayMode": "connectDotted",
+                "minInterval": null
+              },
+              "compareTo": { "enabled": false, "delta": 1, "timeFormat": "day" }
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "type": "advancedToplist",
+          "name": "Top 20 % Memory Limit Used by Container",
+          "description": "",
+          "nullValueDisplayText": null,
+          "links": null,
+          "advancedQueries": [
+            {
+              "query": "topk(20,max by (kube_cluster_name,kube_namespace_name,kube_pod_name,kube_workload_name,container_label_io_kubernetes_container_name) (sysdig_container_memory_limit_used_percent {kube_cluster_name=~$cluster,kube_namespace_name=~$namespace}))",
+              "enabled": true,
+              "displayInfo": {
+                "displayName": "Container < Pod < Workload < Namespace < Cluster",
+                "timeSeriesDisplayNameTemplate": "",
+                "type": "lines"
+              },
+              "format": {
+                "unit": "%",
+                "inputFormat": "0-100",
+                "displayFormat": "auto",
+                "decimals": null,
+                "yAxis": "auto",
+                "nullValueDisplayMode": "connectDotted",
+                "minInterval": null
+              },
+              "compareTo": { "enabled": false, "delta": 1, "timeFormat": "day" }
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "type": "advancedTimechart",
+          "name": "Memory usage",
+          "description": "",
+          "nullValueDisplayText": null,
+          "links": null,
+          "advancedQueries": [
+            {
+              "query": "sum (sysdig_container_memory_used_bytes{$__scope})",
+              "enabled": true,
+              "displayInfo": {
+                "displayName": "Total memory usage",
+                "timeSeriesDisplayNameTemplate": "",
+                "type": "lines"
+              },
+              "format": {
+                "unit": "number",
+                "inputFormat": "1",
+                "displayFormat": "auto",
+                "decimals": null,
+                "yAxis": "auto",
+                "nullValueDisplayMode": "connectDotted",
+                "minInterval": null
+              },
+              "compareTo": { "enabled": false, "delta": 1, "timeFormat": "day" }
+            },
+            {
+              "query": "sum (kube_resourcequota_sysdig_limits_memory_used{$__scope})",
+              "enabled": true,
+              "displayInfo": {
+                "displayName": "Limite request total",
+                "timeSeriesDisplayNameTemplate": "",
+                "type": "lines"
+              },
+              "format": {
+                "unit": "number",
+                "inputFormat": "1",
+                "displayFormat": "auto",
+                "decimals": null,
+                "yAxis": "auto",
+                "nullValueDisplayMode": "connectDotted",
+                "minInterval": null
+              },
+              "compareTo": { "enabled": false, "delta": 1, "timeFormat": "day" }
+            },
+            {
+              "query": "abs(kube_resourcequota_sysdig_limits_memory_hard{$__scope})",
+              "enabled": true,
+              "displayInfo": {
+                "displayName": "",
+                "timeSeriesDisplayNameTemplate": "",
+                "type": "lines"
+              },
+              "format": {
+                "unit": "number",
+                "inputFormat": "1",
+                "displayFormat": "auto",
+                "decimals": null,
+                "yAxis": "auto",
+                "nullValueDisplayMode": "connectDotted",
+                "minInterval": null
+              },
+              "compareTo": { "enabled": false, "delta": 1, "timeFormat": "day" }
+            }
+          ],
+          "legendConfiguration": {
+            "enabled": true,
+            "position": "bottom",
+            "layout": "table",
+            "showCurrent": true,
+            "showMax": null,
+            "showMin": null,
+            "width": null,
+            "height": null
+          },
+          "axesConfiguration": {
+            "bottom": { "enabled": true },
+            "left": {
+              "enabled": true,
+              "displayName": null,
+              "unit": "auto",
+              "displayFormat": "auto",
+              "decimals": null,
+              "minValue": 0.0,
+              "maxValue": null,
+              "minInputFormat": "1",
+              "maxInputFormat": "1",
+              "scale": "linear"
+            },
+            "right": {
+              "enabled": true,
+              "displayName": null,
+              "unit": "auto",
+              "displayFormat": "auto",
+              "decimals": null,
+              "minValue": 0.0,
+              "maxValue": null,
+              "minInputFormat": "1",
+              "maxInputFormat": "1",
+              "scale": "linear"
+            }
+          }
+        },
+        {
+          "id": 8,
+          "type": "advancedNumber",
+          "name": "Memory Utilization(usage/request)",
+          "description": "",
+          "nullValueDisplayText": null,
+          "links": null,
+          "advancedQueries": [
+            {
+              "query": "sum (sysdig_container_memory_used_bytes{$__scope}) / sum(kube_resourcequota_sysdig_requests_memory_used{$__scope,kube_resourcequota_name='compute-long-running-quota'}) * 100\n\n\n",
+              "enabled": true,
+              "displayInfo": {
+                "displayName": null,
+                "timeSeriesDisplayNameTemplate": "",
+                "type": "lines"
+              },
+              "format": {
+                "unit": "%",
+                "inputFormat": "0-100",
+                "displayFormat": "auto",
+                "decimals": null,
+                "yAxis": "auto",
+                "nullValueDisplayMode": "connectDotted",
+                "minInterval": null
+              },
+              "compareTo": { "enabled": false, "delta": 1, "timeFormat": "day" }
+            }
+          ],
+          "numberThresholds": {
+            "useDefaults": null,
+            "values": [],
+            "base": { "severity": "none", "displayText": "" }
+          }
+        },
+        {
+          "id": 9,
+          "type": "advancedTimechart",
+          "name": "Disk % Usage per PVC",
+          "description": "",
+          "nullValueDisplayText": "",
+          "links": null,
+          "advancedQueries": [
+            {
+              "query": "topk(25,kubelet_volume_stats_used_bytes{kube_cluster_name=~$cluster,namespace=~$namespace} / (kubelet_volume_stats_capacity_bytes{kube_cluster_name=~$cluster,namespace=~$namespace}))",
+              "enabled": true,
+              "displayInfo": {
+                "displayName": "PVC < Namespace < Cluster",
+                "timeSeriesDisplayNameTemplate": "",
+                "type": "lines"
+              },
+              "format": {
+                "unit": "%",
+                "inputFormat": "0-1",
+                "displayFormat": "auto",
+                "decimals": null,
+                "yAxis": "auto",
+                "nullValueDisplayMode": "nullZero",
+                "minInterval": null
+              },
+              "compareTo": { "enabled": false, "delta": 1, "timeFormat": "day" }
+            }
+          ],
+          "legendConfiguration": {
+            "enabled": true,
+            "position": "bottom",
+            "layout": "table",
+            "showCurrent": true,
+            "showMax": null,
+            "showMin": null,
+            "width": null,
+            "height": null
+          },
+          "axesConfiguration": {
+            "bottom": { "enabled": true },
+            "left": {
+              "enabled": true,
+              "displayName": null,
+              "unit": "auto",
+              "displayFormat": "auto",
+              "decimals": null,
+              "minValue": 0.0,
+              "maxValue": null,
+              "minInputFormat": "0-100",
+              "maxInputFormat": "0-100",
+              "scale": "linear"
+            },
+            "right": {
+              "enabled": true,
+              "displayName": null,
+              "unit": "auto",
+              "displayFormat": "auto",
+              "decimals": null,
+              "minValue": 0.0,
+              "maxValue": null,
+              "minInputFormat": "1",
+              "maxInputFormat": "1",
+              "scale": "linear"
+            }
+          }
+        },
+        {
+          "id": 10,
+          "type": "advancedTimechart",
+          "name": "Storage Utilization",
+          "description": "",
+          "nullValueDisplayText": null,
+          "links": null,
+          "advancedQueries": [
+            {
+              "query": "sum(kubelet_volume_stats_used_bytes{kube_cluster_name=~$cluster,namespace=~$namespace})",
+              "enabled": true,
+              "displayInfo": {
+                "displayName": "Used PVC",
+                "timeSeriesDisplayNameTemplate": null,
+                "type": "lines"
+              },
+              "format": {
+                "unit": "number",
+                "inputFormat": "1",
+                "displayFormat": "auto",
+                "decimals": 2,
+                "yAxis": "auto",
+                "nullValueDisplayMode": "connectDotted",
+                "minInterval": null
+              },
+              "compareTo": { "enabled": false, "delta": 1, "timeFormat": "day" }
+            },
+            {
+              "query": "(kube_resourcequota_sysdig_requests_storage_hard{kube_cluster_name=~$cluster,namespace=~$namespace})\n",
+              "enabled": true,
+              "displayInfo": {
+                "displayName": "storage limite",
+                "timeSeriesDisplayNameTemplate": null,
+                "type": "lines"
+              },
+              "format": {
+                "unit": "number",
+                "inputFormat": "1",
+                "displayFormat": "auto",
+                "decimals": 2,
+                "yAxis": "auto",
+                "nullValueDisplayMode": "connectDotted",
+                "minInterval": null
+              },
+              "compareTo": { "enabled": false, "delta": 1, "timeFormat": "day" }
+            },
+            {
+              "query": "sum(kube_persistentvolumeclaim_resource_requests_storage_bytes{kube_cluster_name=~$cluster,namespace=~$namespace})",
+              "enabled": true,
+              "displayInfo": {
+                "displayName": "storage requested",
+                "timeSeriesDisplayNameTemplate": null,
+                "type": "lines"
+              },
+              "format": {
+                "unit": "number",
+                "inputFormat": "1",
+                "displayFormat": "auto",
+                "decimals": 2,
+                "yAxis": "auto",
+                "nullValueDisplayMode": "connectDotted",
+                "minInterval": null
+              },
+              "compareTo": { "enabled": false, "delta": 1, "timeFormat": "day" }
+            }
+          ],
+          "legendConfiguration": {
+            "enabled": true,
+            "position": "bottom",
+            "layout": "table",
+            "showCurrent": true,
+            "showMax": null,
+            "showMin": null,
+            "width": null,
+            "height": null
+          },
+          "axesConfiguration": {
+            "bottom": { "enabled": true },
+            "left": {
+              "enabled": true,
+              "displayName": null,
+              "unit": "auto",
+              "displayFormat": "auto",
+              "decimals": null,
+              "minValue": 0.0,
+              "maxValue": null,
+              "minInputFormat": "0-100",
+              "maxInputFormat": "0-100",
+              "scale": "linear"
+            },
+            "right": {
+              "enabled": true,
+              "displayName": null,
+              "unit": "auto",
+              "displayFormat": "auto",
+              "decimals": null,
+              "minValue": 0.0,
+              "maxValue": null,
+              "minInputFormat": "0-100",
+              "maxInputFormat": "0-100",
+              "scale": "linear"
+            }
+          }
+        },
+        {
+          "id": 11,
+          "type": "advancedNumber",
+          "name": "Memory Utilization(usage/limits)",
+          "description": "",
+          "nullValueDisplayText": null,
+          "links": null,
+          "advancedQueries": [
+            {
+              "query": "sum (sysdig_container_memory_used_bytes{$__scope}) / sum(kube_resourcequota_sysdig_limits_memory_used{$__scope,kube_resourcequota_name='compute-long-running-quota'}) * 100\n\n\n",
+              "enabled": true,
+              "displayInfo": {
+                "displayName": "",
+                "timeSeriesDisplayNameTemplate": "",
+                "type": "lines"
+              },
+              "format": {
+                "unit": "%",
+                "inputFormat": "0-100",
+                "displayFormat": "auto",
+                "decimals": null,
+                "yAxis": "auto",
+                "nullValueDisplayMode": "connectDotted",
+                "minInterval": null
+              },
+              "compareTo": { "enabled": false, "delta": 1, "timeFormat": "day" }
+            }
+          ],
+          "numberThresholds": {
+            "useDefaults": null,
+            "values": [],
+            "base": { "severity": "none", "displayText": "" }
+          }
+        },
+        {
+          "id": 12,
+          "type": "advancedNumber",
+          "name": "CPU utilization(usage/limits)",
+          "description": "",
+          "nullValueDisplayText": null,
+          "links": null,
+          "advancedQueries": [
+            {
+              "query": "sum (sysdig_container_cpu_cores_used{$__scope}) / sum(kube_resourcequota_sysdig_limits_cpu_used{$__scope,kube_resourcequota_name='compute-long-running-quota'}) * 100\n\n\n",
+              "enabled": true,
+              "displayInfo": {
+                "displayName": null,
+                "timeSeriesDisplayNameTemplate": "",
+                "type": "lines"
+              },
+              "format": {
+                "unit": "%",
+                "inputFormat": "0-100",
+                "displayFormat": "auto",
+                "decimals": null,
+                "yAxis": "auto",
+                "nullValueDisplayMode": "connectDotted",
+                "minInterval": null
+              },
+              "compareTo": { "enabled": false, "delta": 1, "timeFormat": "day" }
+            }
+          ],
+          "numberThresholds": {
+            "useDefaults": null,
+            "values": [],
+            "base": { "severity": "none", "displayText": "" }
+          }
+        }
+      ],
+      "scopeExpressionList": [
+        {
+          "operand": "kubernetes.namespace.name",
+          "operator": "in",
+          "displayName": "namespace",
+          "value": ["__TARGET_NAMESPACE__"],
+          "descriptor": {
+            "documentId": "kubernetes.namespace.name",
+            "id": "kubernetes.namespace.name",
+            "metricType": "tag",
+            "type": "string",
+            "scale": 0.0,
+            "name": "kubernetes.namespace.name",
+            "description": "kubernetes.namespace.name",
+            "namespaces": ["kubernetes.namespace"],
+            "scopes": [],
+            "timeAggregations": ["concat", "distinct", "count"],
+            "groupAggregations": ["concat", "distinct", "count"],
+            "aggregationForGroup": "none",
+            "hidden": false,
+            "experimental": false,
+            "deferred": false,
+            "identity": false,
+            "canMonitor": false,
+            "canGroupBy": true,
+            "canFilter": true,
+            "generatedFrom": "com.draios.model.metrics.custom.CustomMetric$Tag",
+            "publicId": "kube_namespace_name",
+            "heuristic": false,
+            "documentType": "metric",
+            "segment": false
+          },
+          "variable": true,
+          "isVariable": true
+        }
+      ],
+      "eventDisplaySettings": {
+        "enabled": true,
+        "queryParams": {
+          "severities": [],
+          "alertStatuses": [],
+          "categories": [],
+          "filter": "",
+          "teamScope": false
+        }
+      },
+      "shared": true,
+      "public": false,
+      "description": "",
+      "layout": [
+        { "panelId": 2, "x": 8, "y": 0, "w": 8, "h": 8 },
+        { "panelId": 4, "x": 16, "y": 0, "w": 8, "h": 4 },
+        { "panelId": 5, "x": 0, "y": 0, "w": 8, "h": 8 },
+        { "panelId": 6, "x": 16, "y": 8, "w": 8, "h": 8 },
+        { "panelId": 7, "x": 8, "y": 8, "w": 8, "h": 8 },
+        { "panelId": 8, "x": 0, "y": 8, "w": 8, "h": 4 },
+        { "panelId": 9, "x": 0, "y": 16, "w": 12, "h": 8 },
+        { "panelId": 10, "x": 12, "y": 16, "w": 12, "h": 8 },
+        { "panelId": 11, "x": 0, "y": 12, "w": 8, "h": 4 },
+        { "panelId": 12, "x": 16, "y": 4, "w": 8, "h": 4 }
+      ],
+      "sharingSettings": [
+          {
+              "role": "ROLE_RESOURCE_READ",
+              "member": {
+                  "type": "TEAM",
+                  "id": __TEAM_ID__,
+                  "name": null,
+                  "teamTheme": null
+              }
+          }
+      ],
+      "publicNotation": false,
+      "favorite": false,
+      "schema": 3,
+      "permissions": [
+        "dashboards.read",
+        "dashboards.transfer",
+        "dashboards.delete",
+        "dashboards.edit",
+        "dashboards.sharing"
+      ]
+    }
+}

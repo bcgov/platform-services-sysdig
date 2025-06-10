@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sysdig-operator-go
+  namespace: openshift-bcgov-sysdig-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sysdig-operator-go
+  template:
+    metadata:
+      labels:
+        app: sysdig-operator-go
+    spec:
+      serviceAccountName: sysdig-monitor-controller-manager
+      imagePullSecrets:
+        - name: artifacts-platsvcs-reader
+      containers:
+        - name: manager
+          image: artifacts.developer.gov.bc.ca/plat-util-images/sysdig-operator-go:lab
+          imagePullPolicy: Always
+          env:
+            - name: SYSDIG_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: sysdig-api-token
+                  key: token
+            - name: SYSDIG_API_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: sysdig-api-secret
+                  key: SYSDIG_API_ENDPOINT
+          resources:
+            requests:
+              cpu: 100m
+              memory: 1Gi

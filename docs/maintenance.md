@@ -43,6 +43,7 @@ Once you open a ticket, Sysdig Support will share with you a S3 link where you c
 
 ```bash
 # prep for zipping
+cd docs
 rm -rf zip
 rm zip.zip
 mkdir zip

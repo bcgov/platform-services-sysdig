@@ -1,6 +1,7 @@
 # Logs
 logs
 *.log
+docs/zip*
 
 # temp folders
 *git_checkout*

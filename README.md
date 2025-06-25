@@ -16,6 +16,7 @@ The following are located outside of this repo:
 - [Developer User Guide](https://github.com/bcgov/platform-developer-docs/blob/main/src/docs/app-monitoring/sysdig-monitor-onboarding.md)
 - [Sysdig Installation](https://github.com/bcgov-c/platform-gitops-sysdig)
 - [All Operation/Maintenance related topics](https://github.com/bcgov-c/platform-gitops-sysdig/blob/main/docs/maintenance.md)
+- [Gitops of this Operator is part of CCM](https://github.com/bcgov-c/platform-gitops-gen/tree/master/roles/sysdig_teams_operator)
 
 ### Help / Contact
 See `#devops-sysdig` or `#devops-how-to` channels for assistance in [Rocket.Chat](https://chat.developer.gov.bc.ca/).

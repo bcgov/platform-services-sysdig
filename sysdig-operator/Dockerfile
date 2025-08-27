@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.22 AS builder
+FROM artifacts.developer.gov.bc.ca/docker-remote/golang:1.22 AS builder
 ARG TARGETOS
 ARG TARGETARCH
 

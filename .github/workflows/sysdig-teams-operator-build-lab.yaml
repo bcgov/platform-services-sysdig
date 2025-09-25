@@ -9,6 +9,10 @@ on:
     - '.github/workflows/sysdig-teams-operator-build-lab.yaml'
 
 jobs:
+  # Disable this workflow
+  # ---------------------
+  if: false
+  # ---------------------
   build: 
     runs-on: ubuntu-latest
     steps:

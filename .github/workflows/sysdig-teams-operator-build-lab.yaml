@@ -1,31 +1,27 @@
-name: sysdig-teams-operator-build-lab
-on:
-  push:
-    branches:
-      - '**'
-      - '!main'
-    paths: 
-    - 'operator/sysdig-monitor/**'
-    - '.github/workflows/sysdig-teams-operator-build-lab.yaml'
-
-jobs:
-  # Disable this workflow
-  # ---------------------
-  if: false
-  # ---------------------
-  build: 
-    runs-on: ubuntu-latest
-    steps:
-    - name: Get the current branch name
-      shell: bash
-      run: echo "::set-output name=branch::${GITHUB_REF#refs/heads/}"
-      id: branchref
-    - uses: actions/checkout@v1
-      with:
-        ref: ${{ github.ref }}
-    - name: Login to Artifactory Registry
-      run: echo ${{ secrets.ARTIFACTORY_PASSWORD }} | docker login -u ${{ secrets.ARTIFACTORY_USERNAME }} --password-stdin artifacts.developer.gov.bc.ca/plat-util-images
-    - name: Build the tagged Docker image
-      run: cd operator/sysdig-monitor && docker build . --file Dockerfile --tag artifacts.developer.gov.bc.ca/plat-util-images/sysdig-teams-operator:lab
-    - name: Push the tagged Docker image
-      run: docker push artifacts.developer.gov.bc.ca/plat-util-images/sysdig-teams-operator:lab
+#name: sysdig-teams-operator-build-lab
+#on:
+#  push:
+#    branches:
+#      - '**'
+#      - '!main'
+#    paths: 
+#    - 'operator/sysdig-monitor/**'
+#    - '.github/workflows/sysdig-teams-operator-build-lab.yaml'
+#
+#jobs:
+#  build: 
+#    runs-on: ubuntu-latest
+#    steps:
+#    - name: Get the current branch name
+#      shell: bash
+#      run: echo "::set-output name=branch::${GITHUB_REF#refs/heads/}"
+#      id: branchref
+#    - uses: actions/checkout@v1
+#      with:
+#        ref: ${{ github.ref }}
+#    - name: Login to Artifactory Registry
+#      run: echo ${{ secrets.ARTIFACTORY_PASSWORD }} | docker login -u ${{ secrets.ARTIFACTORY_USERNAME }} --password-stdin artifacts.developer.gov.bc.ca/plat-util-images
+#    - name: Build the tagged Docker image
+#      run: cd operator/sysdig-monitor && docker build . --file Dockerfile --tag artifacts.developer.gov.bc.ca/plat-util-images/sysdig-teams-operator:lab
+#    - name: Push the tagged Docker image
+#      run: docker push artifacts.developer.gov.bc.ca/plat-util-images/sysdig-teams-operator:lab

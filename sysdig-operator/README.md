@@ -3,114 +3,67 @@ sysdig-operator manages the configuration of user access to Sysdig based on info
 
 ## Description
 
-// TODO(user): An in-depth paragraph about your project and overview of use
 
 ## Getting Started
-make manifests && make install run
 
 ### Prerequisites
-- go version v1.22.0+
+- go version v1.24.0+
 - docker version 17.03+.
 - kubectl version v1.11.3+.
-- Access to a Kubernetes v1.11.3+ cluster.
 
-### To Deploy on the cluster
-**Build and push your image to the location specified by `IMG`:**
+### Test changes locally
+After making code changes, verify that the operator can still be built without errors.  This is best done on your local machine, rather than committing the code, pushing it to the code repo, and then having the OpenShift Pipeline do a build.
 
-```sh
-make docker-build docker-push IMG=<some-registry>/sysdig-operator:tag
+To test the build, change to the base directory of this repo and run: `make build`
+
+If there are any errors, investigate and fix them.
+
+Normal output from running 'make build' looks something like this:
+```
+/Users/username/repos/bcgov/platform-services-sysdig/sysdig-operator/bin/controller-gen-v0.14.0 rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+/Users/username/repos/bcgov/platform-services-sysdig/sysdig-operator/bin/controller-gen-v0.14.0 object:headerFile="hack/boilerplate.go.txt" paths="./..."
+go fmt ./...
+go vet ./...
+go build -o bin/manager cmd/main.go
 ```
 
-**NOTE:** This image ought to be published in the personal registry you specified.
-And it is required to have access to pull the image from the working environment.
-Make sure you have the proper permission to the registry if the above commands don’t work.
-
-**Install the CRDs into the cluster:**
-
-```sh
-make install
+You can run the manager locally if you want.  Log in to KLAB and then start the operator:
+```
+go run bin/manager
 ```
 
-**Deploy the Manager to the cluster with the image specified by `IMG`:**
+When you are ready to test your changes in OpenShift, commit your changes to a branch in the code repo.
 
-```sh
-make deploy IMG=<some-registry>/sysdig-operator:tag
-```
+## Automated Builds
+Builds are started automatically when changes are pushed to the repo or when a release is created.  A webhook in the repo makes a call to an OpenShift Pipeline called `operator-build` in the Silver `gitops-tools` namespace.
 
-> **NOTE**: If you encounter RBAC errors, you may need to grant yourself cluster-admin
-privileges or be logged in as admin.
+* Upon any push to the repo, the pipeline will build the image with the `latest` tag.
+* Upon the creation of a release in the repo, the pipeline will build the image with the tag matching the release version, such as `v1.2.3`.
 
-**Create instances of your solution**
-You can apply the samples (examples) from the config/sample:
+## Testing Images in OpenShift
+Test the new image in the same way that we test CCM changes:
+* Log in to the KLAB CCM instance of ArgoCD: https://gitops.apps.klab.devops.gov.bc.ca
+* Edit the `cluster-apps` Application and disable auto-sync.
+* Edit the `sysdig-teams-operator` Application and disable auto-sync.
+* Update the `sysdig-operator-go` Deployment in the openshift-bcgov-sysdig-agent namespace, changing the image tag to `latest`.
+* Monitor the logs of the `manager` container in the new pod.
+* When done testing, re-enable auto-sync in `cluster-apps`, including the prune and self-heal options.
 
-```sh
-kubectl apply -k config/samples/
-```
+## Prepare a Release
+After successfully testing the new image:
+* Create a pull request from your development branch into `main`
+* Merge the pull request and delete the development branch
+* Create a Release
+    * Click the 'Releases' link in the GitHub UI
+    * Click the 'Draft a new release' button
+    * Click the 'Tag: Select tag' button
+    * In the input field 'Search or create a new tag', enter the new tag, such as `v1.2.3`
+    * After entering the new tag, the tag list is replaced with a link reading `Create new tag: v1.2.3 on publich` - click that link
+    * Enter a title and description for the release
+    * Click 'Publish release'
 
->**NOTE**: Ensure that the samples has default values to test it out.
+The creation of the release will start a PipelineRun in the Silver `gitops-tools` namespace.  Verify that the build completes successfully.
 
-### To Uninstall
-**Delete the instances (CRs) from the cluster:**
-
-```sh
-kubectl delete -k config/samples/
-```
-
-**Delete the APIs(CRDs) from the cluster:**
-
-```sh
-make uninstall
-```
-
-**UnDeploy the controller from the cluster:**
-
-```sh
-make undeploy
-```
-
-## Project Distribution
-
-Following are the steps to build the installer and distribute this project to users.
-
-1. Build the installer for the image built and published in the registry:
-
-```sh
-make build-installer IMG=<some-registry>/sysdig-operator:tag
-```
-
-NOTE: The makefile target mentioned above generates an 'install.yaml'
-file in the dist directory. This file contains all the resources built
-with Kustomize, which are necessary to install this project without
-its dependencies.
-
-2. Using the installer
-
-Users can just run kubectl apply -f <URL for YAML BUNDLE> to install the project, i.e.:
-
-```sh
-kubectl apply -f https://raw.githubusercontent.com/<org>/sysdig-operator/<tag or branch>/dist/install.yaml
-```
-
-## Contributing
-// TODO(user): Add detailed information on how you would like others to contribute to this project
-
-**NOTE:** Run `make help` for more information on all potential `make` targets
-
-More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
-
-## License
-
-Copyright 2025.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+## Prepare Update
+Similar to the testing of a `latest` image, test the new versioned image.  After successful testing, prepare a CCM PR by updating the image tag in `roles/sysdig_teams_operator/defaults/main.yaml`.
 

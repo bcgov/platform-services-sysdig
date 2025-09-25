@@ -3,7 +3,6 @@ sysdig-operator manages the configuration of user access to Sysdig based on info
 
 ## Description
 
-
 ## Getting Started
 
 ### Prerequisites

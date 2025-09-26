@@ -298,7 +298,7 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if err := r.Status().Update(ctx, &sysdigTeam); err != nil {
 			logger.Error(err, "Failed to update SysdigTeamGo status for missing credentials")
 		}
-		return ctrl.Result{}, fmt.Errorf(errMsg) // Return error to requeue
+		return ctrl.Result{}, fmt.Errorf("%s", fmt.Sprintf("%s", errMsg)) // Return error to requeue
 	}
 
 	// STEP 2 verify if object is in tools namespace

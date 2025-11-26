@@ -1,4 +1,5 @@
 # metricName                                                  jobName
+container_cpu_usage_seconds_total                             k8s-cadvisor-default
 container_spec_cpu_period                                     k8s-cadvisor-default
 kyverno_admission_review_duration_seconds_bucket              k8s-pods
 kubelet_container_log_filesystem_used_bytes                   k8s-pods
@@ -56,6 +57,10 @@ kyverno_client_queries_total                                  k8s-pods
 kyverno_admission_review_duration_seconds_count               k8s-pods
 kyverno_admission_requests_total                              k8s-pods
 caddy_http_request_duration_seconds_bucket                    k8s-pods
+http_request_duration_seconds_bucket                          k8s-pods
+method_observed_active_seconds_bucket                         k8s-pods
+http_client_requests_seconds_bucket                           k8s-pods
+http_server_requests_seconds_bucket                           k8s-pods
 caddy_http_response_duration_seconds_bucket                   k8s-pods
 kubelet_cgroup_manager_duration_seconds_bucket                k8s-pods
 resilience4j_circuitbreaker_calls_seconds_bucket              k8s-pods
@@ -77,3 +82,6 @@ fluentd_output_status_emit_records                            openshift-fluentd-
 fluentd_output_status_retry_wait                              openshift-fluentd-default
 spring_data_repository_invocations_seconds_sum                k8s-pods
 kyverno_policy_results_total                                  k8s-pods
+ccp_table_size_size_bytes                                     k8s-pods
+spring_data_repository_invocations_seconds_bucket             k8s-pods
+http_server_request_duration_s_bucket                         k8s-pods

@@ -17,3 +17,4 @@ scripts/vars.yaml
 
 # local setup
 *.DS_Store
+sysdig-operator/.env

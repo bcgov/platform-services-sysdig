@@ -17,4 +17,5 @@ scripts/vars.yaml
 
 # local setup
 *.DS_Store
+sysdig-operator/openshift/secret.yaml
 sysdig-operator/.env

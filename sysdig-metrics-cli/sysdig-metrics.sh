@@ -18,12 +18,7 @@ export TOKEN
 function list_metrics() {
   curl -sS -H "Authorization: Bearer $TOKEN" \
     "$API_ENDPOINT/monitor/prometheus-jobs/v1/disabled-metrics" \
-  | jq -r '
-      .data[]? \
-      | "Job: \(.jobName)\n" + \
-        ( .metrics[]? \
-          | "  - \(.metricName)"
-        )'
+  | jq -r '.data[]? | "Job: \(.jobName)", (.metrics[]? | "  - \(.metricName)")'
 }
 
 #--- disable or enable single metric --------------------------------------

@@ -38,6 +38,9 @@ import (
 )
 
 const sysdigTeamFinalizer = "monitoring.devops.gov.bc.ca/finalizer"
+// This is the old finalizer and some SysdigTeams still have it, so we'll
+//   remove it if it exists.
+const sysdigTeamFinalizerOld = "finalizer.ops.gov.bc.ca"
 
 // SysdigTeamGoReconciler reconciles a SysdigTeamGo object
 type SysdigTeamGoReconciler struct {
@@ -243,6 +246,18 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	// Handle deletion: Check if the DeletionTimestamp is set
 	if !sysdigTeam.ObjectMeta.DeletionTimestamp.IsZero() {
+
+		// If the old finalizer exists in a SysdigTeam, remove it.
+		if containsString(sysdigTeam.ObjectMeta.Finalizers, sysdigTeamFinalizerOld) {
+			logger.Info("Removing old finalizer...")
+			sysdigTeam.ObjectMeta.Finalizers = removeString(sysdigTeam.ObjectMeta.Finalizers, sysdigTeamFinalizerOld)
+			if err := r.Update(ctx, &sysdigTeam); err != nil {
+				logger.Error(err, "Failed to remove OLD finalizer from SysdigTeamGo resource")
+				return ctrl.Result{}, err
+			}
+			logger.Info("Successfully removed OLD finalizer")
+		}
+
 		if containsString(sysdigTeam.ObjectMeta.Finalizers, sysdigTeamFinalizer) {
 			logger.Info("SysdigTeamGo resource is being deleted, performing cleanup...")
 

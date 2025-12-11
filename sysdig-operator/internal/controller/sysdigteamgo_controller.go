@@ -246,6 +246,14 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if containsString(sysdigTeam.ObjectMeta.Finalizers, sysdigTeamFinalizer) {
 			logger.Info("SysdigTeamGo resource is being deleted, performing cleanup...")
 
+			// Remove the finalizer
+			sysdigTeam.ObjectMeta.Finalizers = removeString(sysdigTeam.ObjectMeta.Finalizers, sysdigTeamFinalizer)
+			if err := r.Update(ctx, &sysdigTeam); err != nil {
+				logger.Error(err, "Failed to remove finalizer from SysdigTeamGo resource")
+				return ctrl.Result{}, err
+			}
+			logger.Info("Successfully removed finalizer and cleaned up Sysdig teams.")
+
 			// Perform cleanup: Delete Sysdig teams
 			if sysdigTeam.Status.MonitorTeamID != 0 {
 				logger.Info("Deleting Monitor team", "ID", sysdigTeam.Status.MonitorTeamID)
@@ -261,13 +269,6 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				}
 			}
 
-			// Remove the finalizer
-			sysdigTeam.ObjectMeta.Finalizers = removeString(sysdigTeam.ObjectMeta.Finalizers, sysdigTeamFinalizer)
-			if err := r.Update(ctx, &sysdigTeam); err != nil {
-				logger.Error(err, "Failed to remove finalizer from SysdigTeamGo resource")
-				return ctrl.Result{}, err
-			}
-			logger.Info("Successfully removed finalizer and cleaned up Sysdig teams.")
 		}
 		return ctrl.Result{}, nil // Stop reconciliation as the object is being deleted
 	}

@@ -267,7 +267,7 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				logger.Error(err, "Failed to remove finalizer from SysdigTeamGo resource")
 				return ctrl.Result{}, err
 			}
-			logger.Info("Successfully removed finalizer and cleaned up Sysdig teams.")
+			logger.Info("Successfully removed finalizer")
 
 			// Perform cleanup: Delete Sysdig teams
 			if sysdigTeam.Status.MonitorTeamID != 0 {

@@ -24,6 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"fmt"
@@ -38,8 +39,10 @@ import (
 )
 
 const sysdigTeamFinalizer = "monitoring.devops.gov.bc.ca/finalizer"
+
 // This is the old finalizer and some SysdigTeams still have it, so we'll
-//   remove it if it exists.
+//
+//	remove it if it exists.
 const sysdigTeamFinalizerOld = "finalizer.ops.gov.bc.ca"
 
 // SysdigTeamGoReconciler reconciles a SysdigTeamGo object
@@ -248,43 +251,69 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	if !sysdigTeam.ObjectMeta.DeletionTimestamp.IsZero() {
 
 		// If the old finalizer exists in a SysdigTeam, remove it.
-		if containsString(sysdigTeam.ObjectMeta.Finalizers, sysdigTeamFinalizerOld) {
-			logger.Info("Removing old finalizer...")
-			sysdigTeam.ObjectMeta.Finalizers = removeString(sysdigTeam.ObjectMeta.Finalizers, sysdigTeamFinalizerOld)
-			if err := r.Update(ctx, &sysdigTeam); err != nil {
-				logger.Error(err, "Failed to remove OLD finalizer from SysdigTeamGo resource")
-				return ctrl.Result{}, err
+		/*
+			if containsString(sysdigTeam.ObjectMeta.Finalizers, sysdigTeamFinalizerOld) {
+				logger.Info("Removing old finalizer...")
+				sysdigTeam.ObjectMeta.Finalizers = removeString(sysdigTeam.ObjectMeta.Finalizers, sysdigTeamFinalizerOld)
+				if err := r.Update(ctx, &sysdigTeam); err != nil {
+					logger.Error(err, "Failed to remove OLD finalizer from SysdigTeamGo resource")
+					return ctrl.Result{}, err
+				}
+				logger.Info("Successfully removed OLD finalizer")
 			}
-			logger.Info("Successfully removed OLD finalizer")
+		*/
+
+		// Remove finalizer(s)
+		controllerutil.RemoveFinalizer(&sysdigTeam, sysdigTeamFinalizerOld)
+		controllerutil.RemoveFinalizer(&sysdigTeam, sysdigTeamFinalizer)
+		r.Update(ctx, &sysdigTeam)
+
+		/*
+			if containsString(sysdigTeam.ObjectMeta.Finalizers, sysdigTeamFinalizer) {
+				logger.Info("SysdigTeamGo resource is being deleted, performing cleanup...")
+
+				// Remove the finalizer
+				sysdigTeam.ObjectMeta.Finalizers = removeString(sysdigTeam.ObjectMeta.Finalizers, sysdigTeamFinalizer)
+				if err := r.Update(ctx, &sysdigTeam); err != nil {
+					logger.Error(err, "Failed to remove finalizer from SysdigTeamGo resource")
+					return ctrl.Result{}, err
+				}
+				logger.Info("Successfully removed finalizer")
+
+				// Perform cleanup: Delete Sysdig teams
+				if sysdigTeam.Status.MonitorTeamID != 0 {
+					logger.Info("Deleting Monitor team", "ID", sysdigTeam.Status.MonitorTeamID)
+					if err := helpers.DeleteTeam(apiEndpoint, token, sysdigTeam.Status.MonitorTeamID); err != nil {
+						// Log error but attempt to continue to delete the other team and remove finalizer
+						logger.Error(err, "Failed to delete Monitor team", "ID", sysdigTeam.Status.MonitorTeamID)
+					}
+				}
+				if sysdigTeam.Status.SecureTeamID != 0 {
+					logger.Info("Deleting Secure team", "ID", sysdigTeam.Status.SecureTeamID)
+					if err := helpers.DeleteTeam(apiEndpoint, token, sysdigTeam.Status.SecureTeamID); err != nil {
+						logger.Error(err, "Failed to delete Secure team", "ID", sysdigTeam.Status.SecureTeamID)
+					}
+				}
+
+			}
+		*/
+
+		// Delete Monitor team
+		if sysdigTeam.Status.MonitorTeamID != 0 {
+			logger.Info("Deleting Monitor team", "ID", sysdigTeam.Status.MonitorTeamID)
+			if err := helpers.DeleteTeam(apiEndpoint, token, sysdigTeam.Status.MonitorTeamID); err != nil {
+				logger.Error(err, "Failed to delete Monitor team", "ID", sysdigTeam.Status.MonitorTeamID)
+			}
 		}
 
-		if containsString(sysdigTeam.ObjectMeta.Finalizers, sysdigTeamFinalizer) {
-			logger.Info("SysdigTeamGo resource is being deleted, performing cleanup...")
-
-			// Remove the finalizer
-			sysdigTeam.ObjectMeta.Finalizers = removeString(sysdigTeam.ObjectMeta.Finalizers, sysdigTeamFinalizer)
-			if err := r.Update(ctx, &sysdigTeam); err != nil {
-				logger.Error(err, "Failed to remove finalizer from SysdigTeamGo resource")
-				return ctrl.Result{}, err
+		// Delete Secure team
+		if sysdigTeam.Status.SecureTeamID != 0 {
+			logger.Info("Deleting Secure team", "ID", sysdigTeam.Status.SecureTeamID)
+			if err := helpers.DeleteTeam(apiEndpoint, token, sysdigTeam.Status.SecureTeamID); err != nil {
+				logger.Error(err, "Failed to delete Secure team", "ID", sysdigTeam.Status.SecureTeamID)
 			}
-			logger.Info("Successfully removed finalizer")
-
-			// Perform cleanup: Delete Sysdig teams
-			if sysdigTeam.Status.MonitorTeamID != 0 {
-				logger.Info("Deleting Monitor team", "ID", sysdigTeam.Status.MonitorTeamID)
-				if err := helpers.DeleteTeam(apiEndpoint, token, sysdigTeam.Status.MonitorTeamID); err != nil {
-					// Log error but attempt to continue to delete the other team and remove finalizer
-					logger.Error(err, "Failed to delete Monitor team", "ID", sysdigTeam.Status.MonitorTeamID)
-				}
-			}
-			if sysdigTeam.Status.SecureTeamID != 0 {
-				logger.Info("Deleting Secure team", "ID", sysdigTeam.Status.SecureTeamID)
-				if err := helpers.DeleteTeam(apiEndpoint, token, sysdigTeam.Status.SecureTeamID); err != nil {
-					logger.Error(err, "Failed to delete Secure team", "ID", sysdigTeam.Status.SecureTeamID)
-				}
-			}
-
 		}
+
 		return ctrl.Result{}, nil // Stop reconciliation as the object is being deleted
 	}
 

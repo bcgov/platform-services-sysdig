@@ -1,0 +1,29 @@
+---
+# Build the list of target teams for dashboard sync
+# If test_team_name is set, only target that team
+# Otherwise, target all teams except source team and excluded teams
+
+- name: Build target teams list (test mode - single team)
+  set_fact:
+    target_teams: "{{ teams_output.json.teams | selectattr('name', 'equalto', test_team_name) | list }}"
+  when: test_team_name is defined and test_team_name | length > 0
+
+- name: Build target teams list (full mode - all teams except source)
+  set_fact:
+    target_teams: >-
+      {{
+        teams_output.json.teams |
+        rejectattr('name', 'equalto', sysdig_team_name) |
+        rejectattr('name', 'in', exclude_team_names | default([])) |
+        list
+      }}
+  when: test_team_name is not defined or test_team_name | length == 0
+
+- name: Validate target teams found
+  fail:
+    msg: "No target teams found! Check test_team_name or team filters."
+  when: target_teams | length == 0
+
+- name: Debug target teams
+  debug:
+    msg: "Will sync dashboard to {{ target_teams | length }} team(s): {{ target_teams | map(attribute='name') | list }}"

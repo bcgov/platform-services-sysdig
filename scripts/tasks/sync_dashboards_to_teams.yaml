@@ -1,0 +1,16 @@
+---
+# Sync dashboard to all target teams
+# Requires: target_teams, dashboard_template_content
+# Uses: target_dashboard_name from vars (e.g., "Template - Resource Allocation Dashboard")
+
+- name: Sync dashboard to target teams
+  include_tasks: tasks/sync_dashboard_to_team.yaml
+  vars:
+    target_team: "{{ item }}"
+  loop: "{{ target_teams }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Sync complete
+  debug:
+    msg: "Dashboard '{{ target_dashboard_name }}' has been synced to {{ target_teams | length }} team(s)!"

@@ -1,7 +1,7 @@
 ---
 - name: Get list of dashboards
   uri: 
-    url: "{{ sysdig_api_endpoint }}/api/v3/dashboards"
+    url: "{{ sysdig_api_endpoint }}/api/v2/dashboards"
     method: GET
     headers:
         Authorization: "Bearer {{ sysdig_token }}"

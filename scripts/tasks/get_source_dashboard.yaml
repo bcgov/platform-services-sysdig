@@ -1,0 +1,100 @@
+---
+# Get a dashboard from the source team and save it as a template
+# Uses: sysdig_team_name (source team), source_dashboard_name from vars
+# Requires: teams_output (from get_all_teams.yaml)
+#
+# Monitor API: https://app.sysdigcloud.com/apidocs/monitor?_product=SDC
+
+- name: Find matching teams (debug)
+  set_fact:
+    matching_teams: "{{ teams_output.json.teams | selectattr('name', 'equalto', sysdig_team_name) | list }}"
+
+- name: Debug matching teams
+  debug:
+    msg: "Looking for '{{ sysdig_team_name }}', found {{ matching_teams | length }} match(es)"
+
+- name: Fail if source team not found
+  fail:
+    msg: |
+      Source team '{{ sysdig_team_name }}' not found!
+      Similar teams: {{ teams_output.json.teams | map(attribute='name') | select('search', 'Platform') | list }}
+  when: matching_teams | length == 0
+
+- name: Set source team
+  set_fact:
+    source_team: "{{ matching_teams | first }}"
+
+- name: Debug source team
+  debug:
+    msg: "Found source team: {{ source_team.name }} (ID: {{ source_team.id }})"
+
+- name: Get list of dashboards (Monitor API v3)
+  uri: 
+    url: "{{ sysdig_api_endpoint }}/api/v3/dashboards"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ sysdig_token }}"
+      Content-Type: "application/json"
+  register: dashboards_output
+
+- name: Debug available dashboards
+  debug:
+    msg: "Available dashboards: {{ dashboards_output.json.dashboards | map(attribute='name') | list }}"
+
+- name: Find matching dashboards
+  set_fact:
+    matching_dashboards: "{{ dashboards_output.json.dashboards | selectattr('name', 'equalto', target_dashboard_name) | list }}"
+
+- name: Fail if source dashboard not found
+  fail:
+    msg: |
+      Source dashboard '{{ target_dashboard_name }}' not found!
+      Available dashboards: {{ dashboards_output.json.dashboards | map(attribute='name') | list }}
+  when: matching_dashboards | length == 0
+
+- name: Set source dashboard info
+  set_fact:
+    source_dashboard_info: "{{ matching_dashboards | first }}"
+
+- name: Debug source dashboard
+  debug:
+    msg: "Found source dashboard: {{ source_dashboard_info.name }} (ID: {{ source_dashboard_info.id }})"
+
+- name: Get full dashboard details (Monitor API v3)
+  uri: 
+    url: "{{ sysdig_api_endpoint }}/api/v3/dashboards/{{ source_dashboard_info.id }}"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ sysdig_token }}"
+      Content-Type: "application/json"
+  register: source_dashboard_full
+
+- name: Extract dashboard content (removing unnecessary fields)
+  set_fact:
+    dashboard_template_content: >-
+      {{
+        source_dashboard_full.json.dashboard | 
+        dict2items | 
+        rejectattr('key', 'in', fields_to_remove) | 
+        items2dict
+      }}
+  vars:
+    fields_to_remove:
+      - id
+      - createdOn
+      - modifiedOn
+      - version
+      - username
+      - customerId
+      - publicToken
+      - permissions
+      - favorite
+
+- name: Save raw dashboard for reference
+  copy:
+    content: "{{ source_dashboard_full.json | to_nice_json }}"
+    dest: "output/source_dashboard_raw.json"
+
+- name: Debug template extracted
+  debug:
+    msg: "Dashboard template extracted with {{ dashboard_template_content.panels | length }} panels"

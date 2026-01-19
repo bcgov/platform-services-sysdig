@@ -1,0 +1,88 @@
+---
+# Sync dashboard to a target team
+# Requires: target_team (team object), dashboard_template_content
+# Uses: target_dashboard_name from vars
+#
+# Monitor API: https://app.sysdigcloud.com/apidocs/monitor?_product=SDC
+
+- name: Debug target team
+  debug:
+    msg: "Processing team: {{ target_team.name }} (ID: {{ target_team.id }})"
+
+- name: Get list of dashboards from target team (Monitor API v3)
+  uri: 
+    url: "{{ sysdig_api_endpoint }}/api/v3/dashboards"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ sysdig_token }}"
+      Content-Type: "application/json"
+  register: target_dashboards_output
+
+- name: Find existing dashboard with same name
+  set_fact:
+    existing_dashboard: "{{ target_dashboards_output.json.dashboards | selectattr('name', 'equalto', target_dashboard_name) | list }}"
+
+- name: Debug existing dashboard search
+  debug:
+    msg: "Found {{ existing_dashboard | length }} existing dashboard(s) named '{{ target_dashboard_name }}'"
+
+# Delete existing dashboard if found
+- name: Delete existing dashboard (Monitor API v3)
+  uri: 
+    url: "{{ sysdig_api_endpoint }}/api/v3/dashboards/{{ item.id }}"
+    method: DELETE
+    headers:
+      Authorization: "Bearer {{ sysdig_token }}"
+      Content-Type: "application/json"
+    status_code: [200, 204]
+  loop: "{{ existing_dashboard }}"
+  when: existing_dashboard | length > 0
+  register: delete_result
+
+- name: Debug delete result
+  debug:
+    msg: "Deleted existing dashboard(s)"
+  when: existing_dashboard | length > 0
+
+# Prepare dashboard for this team
+- name: Build dashboard payload with team-specific settings
+  set_fact:
+    create_payload:
+      dashboard: >-
+        {{
+          dashboard_template_content |
+          combine({
+            'teamId': target_team.id | int,
+            'name': target_dashboard_name,
+            'sharingSettings': [
+              {
+                'role': 'ROLE_RESOURCE_READ',
+                'member': {
+                  'type': 'TEAM',
+                  'id': target_team.id | int
+                }
+              }
+            ]
+          })
+        }}
+
+- name: Debug create payload (summary)
+  debug:
+    msg: "Creating dashboard '{{ target_dashboard_name }}' for team {{ target_team.name }} (ID: {{ target_team.id }})"
+
+# Create new dashboard
+- name: Create new dashboard (Monitor API v3)
+  uri: 
+    url: "{{ sysdig_api_endpoint }}/api/v3/dashboards"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ sysdig_token }}"
+      Content-Type: "application/json"
+    body: "{{ create_payload }}"
+    body_format: json
+    status_code: [200, 201]
+  register: create_result
+
+- name: Debug create result
+  debug:
+    msg: "Successfully created dashboard '{{ target_dashboard_name }}' with ID: {{ create_result.json.dashboard.id }}"

@@ -31,12 +31,12 @@
 # Add the dashboard that each team will need
 - name: Set Resource Usage Dashboard
   uri: 
-    url: "{{ sysdig_api_endpoint }}/api/v3/dashboards/"
+    url: "{{ sysdig_api_endpoint }}/api/v2/dashboards"
     method: POST
     headers:
         Authorization: "Bearer {{ container_team_admin_user_token.json.token.key }}"
         Content-Type: "application/json"
     body: "{{ lookup('template', 'templates/dashboard_template_resource_allocation.json.j2') }}"
     body_format: json
-    status_code: 201
+    status_code: [200, 201]
   register: default_dashboard_creation_output

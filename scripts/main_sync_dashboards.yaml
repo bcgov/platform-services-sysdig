@@ -1,0 +1,36 @@
+# Sync Dashboard Template Across Teams
+# 
+# This playbook:
+# 1. Fetches a dashboard from the source team (Platform Experience)
+# 2. Saves it as a reusable template
+# 3. Applies the dashboard to target teams (delete existing + create new)
+#
+# Usage:
+#   # Test mode - sync to single team first:
+#   ansible-playbook main_sync_dashboards.yaml -e "test_team_name=101ed4-team"
+#
+#   # Full mode - sync to all teams:
+#   ansible-playbook main_sync_dashboards.yaml
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  vars_files: 
+    - vars/vars-sample.yaml
+  
+  tasks:
+    # Step 1: Get all teams
+    - name: Get all teams
+      include_tasks: tasks/get_all_teams.yaml
+
+    # Step 2: Get source dashboard from Platform Experience team
+    - name: Get source dashboard from source team
+      include_tasks: tasks/get_source_dashboard.yaml
+
+    # Step 3: Build list of target teams
+    - name: Build target teams list
+      include_tasks: tasks/build_target_teams.yaml
+
+    # Step 4: Sync dashboard to target teams
+    - name: Sync dashboard to target teams
+      include_tasks: tasks/sync_dashboards_to_teams.yaml

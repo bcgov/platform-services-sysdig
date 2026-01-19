@@ -1,15 +1,35 @@
 ---
 # vars file for SysdigTeam
+
+# Docs: https://app.sysdigcloud.com/apidocs/monitor?_product=SDC
 sysdig_api_endpoint: https://app.sysdigcloud.com
+
+# Docs: https://app.sysdigcloud.com/api/public/docs/index.html
+sysdig_platform_api_endpoint: https://api.us1.sysdig.com
+
 sysdig_token: "{{ lookup('env', 'SYSDIG_TOKEN') }}"
 
-# SA for default dashboards:
+# SA for default dashboards (service account with access to all teams):
 sysdig_team_sa:
   name: ''
   role: ''
   id: ''
 
-sysdig_team_name: shellyxuehan-team
+# Source team - the team from which we pull the dashboard template
+sysdig_team_name: Platform Experience
+
+# Source dashboard name - the dashboard to copy from source team
+# source_dashboard_name: "Resource Allocation Dashboard"
+
+# Target dashboard name - the name to use when creating in other teams
+target_dashboard_name: "Template - Resources Quota Approve Dashboard"
+
+# Test mode: Set this to a specific team name to only sync to that team
+# Leave empty or comment out for full sync to all teams
+# test_team_name: "101ed4-team"
+
+# List of teams to exclude from syncing (besides source team)
+exclude_team_names: []
 
 target_team_names: []
 target_dashboard_ids: []

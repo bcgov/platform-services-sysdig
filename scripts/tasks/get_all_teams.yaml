@@ -1,18 +1,85 @@
 ---
-- name: Fetch list of current teams
+# Get all teams using Monitor API v3
+# Docs: https://app.sysdigcloud.com/apidocs/monitor
+# Filter: product:SDC to get only Monitor teams (excludes Secure teams)
+
+- name: Initialize all_teams list
+  set_fact:
+    all_teams: []
+
+- name: Fetch teams page 1 (offset 0)
   uri: 
-    url: "{{ sysdig_api_endpoint }}/api/teams"
+    url: "{{ sysdig_api_endpoint }}/api/v3/teams?limit=200&offset=0&filter=product%3ASDC"
     method: GET
     headers:
       Authorization: "Bearer {{ sysdig_token }}"
       Content-Type: "application/json"
-  register: teams_output
+  register: teams_page_1
 
-- name: Get teams
+- name: Add page 1 to all_teams
   set_fact:
-    teams_list: "{{ teams_output.json.teams | json_query(jmesquery) }}"
-  vars:
-    jmesquery: "[].name"
+    all_teams: "{{ all_teams + teams_page_1.json.data }}"
 
-- name: Get a backup for the list of teams
-  copy: content="{{ teams_list }}" dest="output/all-team-list.json"
+- name: Fetch teams page 2 (offset 200)
+  uri: 
+    url: "{{ sysdig_api_endpoint }}/api/v3/teams?limit=200&offset=200&filter=product%3ASDC"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ sysdig_token }}"
+      Content-Type: "application/json"
+  register: teams_page_2
+  when: teams_page_1.json.data | length == 200
+
+- name: Add page 2 to all_teams
+  set_fact:
+    all_teams: "{{ all_teams + teams_page_2.json.data }}"
+  when: teams_page_2 is defined and teams_page_2.json is defined
+
+- name: Fetch teams page 3 (offset 400)
+  uri: 
+    url: "{{ sysdig_api_endpoint }}/api/v3/teams?limit=200&offset=400&filter=product%3ASDC"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ sysdig_token }}"
+      Content-Type: "application/json"
+  register: teams_page_3
+  when: teams_page_2 is defined and teams_page_2.json is defined and teams_page_2.json.data | length == 200
+
+- name: Add page 3 to all_teams
+  set_fact:
+    all_teams: "{{ all_teams + teams_page_3.json.data }}"
+  when: teams_page_3 is defined and teams_page_3.json is defined
+
+- name: Fetch teams page 4 (offset 600)
+  uri: 
+    url: "{{ sysdig_api_endpoint }}/api/v3/teams?limit=200&offset=600&filter=product%3ASDC"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ sysdig_token }}"
+      Content-Type: "application/json"
+  register: teams_page_4
+  when: teams_page_3 is defined and teams_page_3.json is defined and teams_page_3.json.data | length == 200
+
+- name: Add page 4 to all_teams
+  set_fact:
+    all_teams: "{{ all_teams + teams_page_4.json.data }}"
+  when: teams_page_4 is defined and teams_page_4.json is defined
+
+- name: Set teams output in expected format
+  set_fact:
+    teams_output:
+      json:
+        teams: "{{ all_teams }}"
+
+- name: Get teams list
+  set_fact:
+    teams_list: "{{ teams_output.json.teams | map(attribute='name') | list }}"
+
+- name: Save teams list for reference (name and id only)
+  copy:
+    content: "{{ teams_output.json.teams | map('dict2items') | map('selectattr', 'key', 'in', ['name', 'id']) | map('items2dict') | list | to_nice_json }}"
+    dest: "output/all_teams.json"
+
+- name: Debug teams found
+  debug:
+    msg: "Found {{ teams_output.json.teams | length }} total teams"

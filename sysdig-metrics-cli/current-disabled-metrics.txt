@@ -68,7 +68,6 @@ http_server_request_duration_s_bucket                         k8s-pods
 microsoft_aspnetcore_hosting_http_server_request_duration_bucket k8s-pods
 argocd_git_request_duration_seconds_bucket                    k8s-pods
 dns_lookup_duration_s_bucket                                         k8s-pods
-grpc_server_msg_received_total                                       k8s-pods
 
 java_lang_ZGC_Major_Cycles_LastGcInfo_memoryUsageAfterGc_committed   k8s-pods
 java_lang_ZGC_Major_Cycles_LastGcInfo_memoryUsageAfterGc_init        k8s-pods

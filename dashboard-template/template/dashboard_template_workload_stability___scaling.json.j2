@@ -1,67 +1,21 @@
 {
   "dashboard": {
-    "name": "Resources Quota Approve Dashboard",
+    "name": "Workload Stability & Scaling",
     "panels": [
       {
         "id": 2,
         "type": "advancedTimechart",
-        "name": "CPU USAGE",
+        "name": " CPU Throttling Percentage",
         "description": "",
         "nullValueDisplayText": null,
         "links": null,
         "advancedQueries": [
           {
-            "query": "sum(\n  avg_over_time(sysdig_container_cpu_cores_used{$__scope}[$__interval])\n)\n",
-            "enabled": true,
-            "displayInfo": {
-              "displayName": "CPU total usage ",
-              "timeSeriesDisplayNameTemplate": "",
-              "type": "lines"
-            },
-            "format": {
-              "unit": "number",
-              "inputFormat": "1",
-              "displayFormat": "1",
-              "decimals": null,
-              "yAxis": "auto",
-              "nullValueDisplayMode": "connectDotted",
-              "minInterval": null
-            },
-            "compareTo": {
-              "enabled": false,
-              "delta": 1,
-              "timeFormat": "day"
-            }
-          },
-          {
-            "query": "sum(\n  kube_resourcequota_sysdig_requests_cpu_hard{$__scope, kube_resourcequota_name=\"compute-long-running-quota\"}\n)\n",
-            "enabled": true,
-            "displayInfo": {
-              "displayName": "CPU Request hard",
-              "timeSeriesDisplayNameTemplate": "",
-              "type": "lines"
-            },
-            "format": {
-              "unit": "number",
-              "inputFormat": "1",
-              "displayFormat": "auto",
-              "decimals": null,
-              "yAxis": "auto",
-              "nullValueDisplayMode": "connectDotted",
-              "minInterval": null
-            },
-            "compareTo": {
-              "enabled": false,
-              "delta": 1,
-              "timeFormat": "day"
-            }
-          },
-          {
-            "query": "sum(\n  kube_resourcequota_sysdig_requests_cpu_used{$__scope, kube_resourcequota_name=\"compute-long-running-quota\"}\n)\n",
+            "query": "(\n  sum(rate(container_cpu_cfs_throttled_periods_total{$__scope}[5m])) by (kube_workload_name)\n  /\n  sum(rate(container_cpu_cfs_periods_total{$__scope}[5m])) by (kube_workload_name)\n) * 100 or vector(0)",
             "enabled": true,
             "displayInfo": {
               "displayName": "",
-              "timeSeriesDisplayNameTemplate": "CPU request",
+              "timeSeriesDisplayNameTemplate": "CPU requested (cores)",
               "type": "lines"
             },
             "format": {
@@ -85,8 +39,88 @@
           "position": "bottom",
           "layout": "table",
           "showCurrent": true,
-          "showMax": null,
-          "showMin": null,
+          "showMax": false,
+          "showMin": false,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 3,
+        "type": "advancedTimechart",
+        "name": "Crash & Restart Trends",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(changes(kube_pod_container_status_restarts_total{$__scope}[1h])) by (kube_workload_name) or vector(0)",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "connectDotted",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": false,
+          "showMin": false,
           "width": null,
           "height": null
         },
@@ -130,23 +164,23 @@
       },
       {
         "id": 4,
-        "type": "advancedNumber",
-        "name": "CPU utilization(usage/request)",
+        "type": "advancedTimechart",
+        "name": "OOMKill & Termination Reason History",
         "description": "",
         "nullValueDisplayText": null,
         "links": null,
         "advancedQueries": [
           {
-            "query": "100 *\nmax_over_time(\n  sum(sysdig_container_cpu_cores_used{$__scope})[$__range:]\n)\n/\nclamp_min(\n  max_over_time(\n    sum(kube_resourcequota_sysdig_requests_cpu_used{$__scope, kube_resourcequota_name=\"compute-long-running-quota\"})[$__range:]\n  ),\n  0.001\n)\n",
+            "query": "sum(kube_pod_container_status_terminated_reason{$__scope, reason=\"OOMKilled\"}) by (kube_workload_name) or vector(0)",
             "enabled": true,
             "displayInfo": {
-              "displayName": null,
+              "displayName": "",
               "timeSeriesDisplayNameTemplate": "",
               "type": "lines"
             },
             "format": {
-              "unit": "%",
-              "inputFormat": "0-100",
+              "unit": "number",
+              "inputFormat": "1",
               "displayFormat": "auto",
               "decimals": null,
               "yAxis": "auto",
@@ -160,6 +194,45 @@
             }
           }
         ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": false,
+          "showMin": false,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          }
+        },
         "numberThresholds": {
           "useDefaults": null,
           "values": [],
@@ -171,432 +244,14 @@
       },
       {
         "id": 5,
-        "type": "advancedToplist",
-        "name": "Top 20 % CPU Limit Used by Container",
-        "description": "",
-        "nullValueDisplayText": "No containers using >75% of their CPU limits",
-        "links": null,
-        "advancedQueries": [
-          {
-            "query": "topk(20, sum by (container, kube_pod_name,kube_cluster_name,kube_namespace_name,kube_workload_name)(\n\nrate(sysdig_container_cpu_cores_used{kube_namespace_name=~$namespace,kube_cluster_name=~$cluster}[$__interval]))\n\n/\n\nsum by (container,kube_pod_name,kube_cluster_name,kube_namespace_name,kube_workload_name)(kube_pod_container_resource_limits{kube_namespace_name=~$namespace,kube_cluster_name=~$cluster,resource=\"cpu\"}))",
-            "enabled": true,
-            "displayInfo": {
-              "displayName": "Container < Pod < Workload < Namespace < Cluster",
-              "timeSeriesDisplayNameTemplate": "{{container}} < {{kube_pod_name}} < {{kube_workload_name}} < {{kube_namespace_name}} < {{kube_cluster_name}}",
-              "type": "lines"
-            },
-            "format": {
-              "unit": "%",
-              "inputFormat": "0-1",
-              "displayFormat": "auto",
-              "decimals": null,
-              "yAxis": "auto",
-              "nullValueDisplayMode": "connectDotted",
-              "minInterval": null
-            },
-            "compareTo": {
-              "enabled": false,
-              "delta": 1,
-              "timeFormat": "day"
-            }
-          }
-        ]
-      },
-      {
-        "id": 6,
-        "type": "advancedToplist",
-        "name": "Top 20 % Memory Limit Used by Container",
-        "description": "",
-        "nullValueDisplayText": null,
-        "links": null,
-        "advancedQueries": [
-          {
-            "query": "topk(20,max by (kube_cluster_name,kube_namespace_name,kube_pod_name,kube_workload_name,container_label_io_kubernetes_container_name) (sysdig_container_memory_limit_used_percent {kube_cluster_name=~$cluster,kube_namespace_name=~$namespace}))",
-            "enabled": true,
-            "displayInfo": {
-              "displayName": "Container < Pod < Workload < Namespace < Cluster",
-              "timeSeriesDisplayNameTemplate": "{{container_label_io_kubernetes_container_name}} < {{kube_pod_name}} < {{kube_workload_name}} < {{kube_namespace_name}} < {{kube_cluster_name}}",
-              "type": "lines"
-            },
-            "format": {
-              "unit": "%",
-              "inputFormat": "0-100",
-              "displayFormat": "auto",
-              "decimals": null,
-              "yAxis": "auto",
-              "nullValueDisplayMode": "connectDotted",
-              "minInterval": null
-            },
-            "compareTo": {
-              "enabled": false,
-              "delta": 1,
-              "timeFormat": "day"
-            }
-          }
-        ]
-      },
-      {
-        "id": 7,
         "type": "advancedTimechart",
-        "name": "Memory usage",
+        "name": "“HPA headroom deficit % above threshold",
         "description": "",
         "nullValueDisplayText": null,
         "links": null,
         "advancedQueries": [
           {
-            "query": "sum (kube_pod_container_resource_requests{$__scope, resource='memory'})",
-            "enabled": true,
-            "displayInfo": {
-              "displayName": "Total RAM requested ",
-              "timeSeriesDisplayNameTemplate": "",
-              "type": "lines"
-            },
-            "format": {
-              "unit": "number",
-              "inputFormat": "1",
-              "displayFormat": "auto",
-              "decimals": null,
-              "yAxis": "auto",
-              "nullValueDisplayMode": "connectDotted",
-              "minInterval": null
-            },
-            "compareTo": {
-              "enabled": false,
-              "delta": 1,
-              "timeFormat": "day"
-            }
-          },
-          {
-            "query": "sum((sysdig_container_memory_used_bytes{$__scope})) or vector(0)",
-            "enabled": true,
-            "displayInfo": {
-              "displayName": "Total RAM usage",
-              "timeSeriesDisplayNameTemplate": "",
-              "type": "lines"
-            },
-            "format": {
-              "unit": "number",
-              "inputFormat": "1",
-              "displayFormat": "auto",
-              "decimals": null,
-              "yAxis": "auto",
-              "nullValueDisplayMode": "connectDotted",
-              "minInterval": null
-            },
-            "compareTo": {
-              "enabled": false,
-              "delta": 1,
-              "timeFormat": "day"
-            }
-          },
-          {
-            "query": "abs(kube_resourcequota_sysdig_requests_memory_hard{$__scope}) or vector(0)",
-            "enabled": true,
-            "displayInfo": {
-              "displayName": "Namespace requested RAM",
-              "timeSeriesDisplayNameTemplate": "",
-              "type": "lines"
-            },
-            "format": {
-              "unit": "number",
-              "inputFormat": "1",
-              "displayFormat": "auto",
-              "decimals": null,
-              "yAxis": "auto",
-              "nullValueDisplayMode": "connectDotted",
-              "minInterval": null
-            },
-            "compareTo": {
-              "enabled": false,
-              "delta": 1,
-              "timeFormat": "day"
-            }
-          }
-        ],
-        "legendConfiguration": {
-          "enabled": true,
-          "position": "bottom",
-          "layout": "table",
-          "showCurrent": true,
-          "showMax": null,
-          "showMin": null,
-          "width": null,
-          "height": null
-        },
-        "axesConfiguration": {
-          "bottom": {
-            "enabled": true
-          },
-          "left": {
-            "enabled": true,
-            "displayName": null,
-            "unit": "auto",
-            "displayFormat": "auto",
-            "decimals": null,
-            "minValue": 0,
-            "maxValue": null,
-            "minInputFormat": "1",
-            "maxInputFormat": "1",
-            "scale": "linear"
-          },
-          "right": {
-            "enabled": true,
-            "displayName": null,
-            "unit": "auto",
-            "displayFormat": "auto",
-            "decimals": null,
-            "minValue": 0,
-            "maxValue": null,
-            "minInputFormat": "1",
-            "maxInputFormat": "1",
-            "scale": "linear"
-          }
-        },
-        "numberThresholds": null
-      },
-      {
-        "id": 8,
-        "type": "advancedNumber",
-        "name": "Memory Utilization(usage/request)",
-        "description": "",
-        "nullValueDisplayText": null,
-        "links": null,
-        "advancedQueries": [
-          {
-            "query": " sum (sysdig_container_memory_used_bytes{$__scope}) /sum(kube_resourcequota_sysdig_requests_memory_used{$__scope,kube_resourcequota_name='compute-long-running-quota'}) * 100\n\n\n",
-            "enabled": true,
-            "displayInfo": {
-              "displayName": null,
-              "timeSeriesDisplayNameTemplate": "",
-              "type": "lines"
-            },
-            "format": {
-              "unit": "%",
-              "inputFormat": "0-100",
-              "displayFormat": "auto",
-              "decimals": null,
-              "yAxis": "auto",
-              "nullValueDisplayMode": "connectDotted",
-              "minInterval": null
-            },
-            "compareTo": {
-              "enabled": false,
-              "delta": 1,
-              "timeFormat": "day"
-            }
-          }
-        ],
-        "numberThresholds": {
-          "useDefaults": null,
-          "values": [],
-          "base": {
-            "severity": "none",
-            "displayText": ""
-          }
-        }
-      },
-      {
-        "id": 9,
-        "type": "advancedTimechart",
-        "name": "Disk % Usage per PVC",
-        "description": "",
-        "nullValueDisplayText": "",
-        "links": null,
-        "advancedQueries": [
-          {
-            "query": "topk(25,kubelet_volume_stats_used_bytes{kube_cluster_name=~$cluster,namespace=~$namespace} / (kubelet_volume_stats_capacity_bytes{kube_cluster_name=~$cluster,namespace=~$namespace}))",
-            "enabled": true,
-            "displayInfo": {
-              "displayName": "PVC < Namespace < Cluster",
-              "timeSeriesDisplayNameTemplate": "{{persistentvolumeclaim}}  <  {{namespace}} < {{kube_cluster_name}}",
-              "type": "lines"
-            },
-            "format": {
-              "unit": "%",
-              "inputFormat": "0-1",
-              "displayFormat": "auto",
-              "decimals": null,
-              "yAxis": "auto",
-              "nullValueDisplayMode": "nullZero",
-              "minInterval": null
-            },
-            "compareTo": {
-              "enabled": false,
-              "delta": 1,
-              "timeFormat": "day"
-            }
-          }
-        ],
-        "legendConfiguration": {
-          "enabled": true,
-          "position": "bottom",
-          "layout": "table",
-          "showCurrent": true,
-          "showMax": null,
-          "showMin": null,
-          "width": null,
-          "height": null
-        },
-        "axesConfiguration": {
-          "bottom": {
-            "enabled": true
-          },
-          "left": {
-            "enabled": true,
-            "displayName": null,
-            "unit": "auto",
-            "displayFormat": "auto",
-            "decimals": null,
-            "minValue": 0,
-            "maxValue": null,
-            "minInputFormat": "0-100",
-            "maxInputFormat": "0-100",
-            "scale": "linear"
-          },
-          "right": {
-            "enabled": true,
-            "displayName": null,
-            "unit": "auto",
-            "displayFormat": "auto",
-            "decimals": null,
-            "minValue": 0,
-            "maxValue": null,
-            "minInputFormat": "1",
-            "maxInputFormat": "1",
-            "scale": "linear"
-          }
-        },
-        "numberThresholds": null
-      },
-      {
-        "id": 10,
-        "type": "advancedTimechart",
-        "name": "Storage Utilization",
-        "description": "",
-        "nullValueDisplayText": null,
-        "links": null,
-        "advancedQueries": [
-          {
-            "query": "sum(kubelet_volume_stats_used_bytes{kube_cluster_name=~$cluster,namespace=~$namespace})",
-            "enabled": true,
-            "displayInfo": {
-              "displayName": "Used PVC",
-              "timeSeriesDisplayNameTemplate": null,
-              "type": "lines"
-            },
-            "format": {
-              "unit": "number",
-              "inputFormat": "1",
-              "displayFormat": "auto",
-              "decimals": 2,
-              "yAxis": "auto",
-              "nullValueDisplayMode": "connectDotted",
-              "minInterval": null
-            },
-            "compareTo": {
-              "enabled": false,
-              "delta": 1,
-              "timeFormat": "day"
-            }
-          },
-          {
-            "query": "(kube_resourcequota_sysdig_requests_storage_hard{kube_cluster_name=~$cluster,namespace=~$namespace})\n",
-            "enabled": true,
-            "displayInfo": {
-              "displayName": "storage limite",
-              "timeSeriesDisplayNameTemplate": null,
-              "type": "lines"
-            },
-            "format": {
-              "unit": "number",
-              "inputFormat": "1",
-              "displayFormat": "auto",
-              "decimals": 2,
-              "yAxis": "auto",
-              "nullValueDisplayMode": "connectDotted",
-              "minInterval": null
-            },
-            "compareTo": {
-              "enabled": false,
-              "delta": 1,
-              "timeFormat": "day"
-            }
-          },
-          {
-            "query": "sum(kube_persistentvolumeclaim_resource_requests_storage_bytes{kube_cluster_name=~$cluster,namespace=~$namespace})",
-            "enabled": true,
-            "displayInfo": {
-              "displayName": "storage requested",
-              "timeSeriesDisplayNameTemplate": null,
-              "type": "lines"
-            },
-            "format": {
-              "unit": "number",
-              "inputFormat": "1",
-              "displayFormat": "auto",
-              "decimals": 2,
-              "yAxis": "auto",
-              "nullValueDisplayMode": "connectDotted",
-              "minInterval": null
-            },
-            "compareTo": {
-              "enabled": false,
-              "delta": 1,
-              "timeFormat": "day"
-            }
-          }
-        ],
-        "legendConfiguration": {
-          "enabled": true,
-          "position": "bottom",
-          "layout": "table",
-          "showCurrent": true,
-          "showMax": null,
-          "showMin": null,
-          "width": null,
-          "height": null
-        },
-        "axesConfiguration": {
-          "bottom": {
-            "enabled": true
-          },
-          "left": {
-            "enabled": true,
-            "displayName": null,
-            "unit": "auto",
-            "displayFormat": "auto",
-            "decimals": null,
-            "minValue": 0,
-            "maxValue": null,
-            "minInputFormat": "0-100",
-            "maxInputFormat": "0-100",
-            "scale": "linear"
-          },
-          "right": {
-            "enabled": true,
-            "displayName": null,
-            "unit": "auto",
-            "displayFormat": "auto",
-            "decimals": null,
-            "minValue": 0,
-            "maxValue": null,
-            "minInputFormat": "0-100",
-            "maxInputFormat": "0-100",
-            "scale": "linear"
-          }
-        },
-        "numberThresholds": null
-      },
-      {
-        "id": 11,
-        "type": "advancedNumber",
-        "name": "Namespce RAM request used",
-        "description": "",
-        "nullValueDisplayText": null,
-        "links": null,
-        "advancedQueries": [
-          {
-            "query": "  sum by (namespace) (\n    kube_resourcequota_sysdig_requests_memory_used{\n      $__scope,\n      kube_resourcequota_name='compute-long-running-quota'\n    }\n  )\n/\non(namespace)\n  max by (namespace)(\n    kube_resourcequota_sysdig_requests_memory_hard{\n      $__scope,\n      kube_resourcequota_name='compute-long-running-quota'\n    }\n  ) * 100",
+            "query": "max(\n  clamp_min(\n    100 * (\n      max by (cluster, namespace, hpa) (kube_horizontalpodautoscaler_status_current_replicas{$__scope})\n      /\n      clamp_min(max by (cluster, namespace, hpa) (kube_horizontalpodautoscaler_spec_max_replicas{$__scope}), 1)\n    ) - 80,\n    0\n  )\n) or vector(0)\n",
             "enabled": true,
             "displayInfo": {
               "displayName": "",
@@ -604,8 +259,8 @@
               "type": "lines"
             },
             "format": {
-              "unit": "%",
-              "inputFormat": "0-100",
+              "unit": "number",
+              "inputFormat": "1",
               "displayFormat": "auto",
               "decimals": null,
               "yAxis": "auto",
@@ -619,47 +274,45 @@
             }
           }
         ],
-        "numberThresholds": {
-          "useDefaults": null,
-          "values": [],
-          "base": {
-            "severity": "none",
-            "displayText": ""
-          }
-        }
-      },
-      {
-        "id": 12,
-        "type": "advancedNumber",
-        "name": "Namespce CPU request used",
-        "description": "",
-        "nullValueDisplayText": null,
-        "links": null,
-        "advancedQueries": [
-          {
-            "query": "sum by (namespace) (\n  kube_resourcequota_sysdig_requests_cpu_used{\n    $__scope,\n    kube_resourcequota_name=\"compute-long-running-quota\"\n  }\n)\n/\non(namespace)\nmax by (namespace) (\n  kube_resourcequota_sysdig_requests_cpu_hard{\n    $__scope,\n    kube_resourcequota_name=\"compute-long-running-quota\"\n  }\n)\n* 100",
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": false,
+          "showMin": false,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
             "enabled": true,
-            "displayInfo": {
-              "displayName": null,
-              "timeSeriesDisplayNameTemplate": "",
-              "type": "lines"
-            },
-            "format": {
-              "unit": "%",
-              "inputFormat": "0-100",
-              "displayFormat": "auto",
-              "decimals": null,
-              "yAxis": "auto",
-              "nullValueDisplayMode": "connectDotted",
-              "minInterval": null
-            },
-            "compareTo": {
-              "enabled": false,
-              "delta": 1,
-              "timeFormat": "day"
-            }
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
           }
-        ],
+        },
         "numberThresholds": {
           "useDefaults": null,
           "values": [],
@@ -670,15 +323,15 @@
         }
       },
       {
-        "id": 13,
+        "id": 6,
         "type": "advancedTimechart",
-        "name": "pot cpu throttling time",
+        "name": "4. Network Error Rate ",
         "description": "",
         "nullValueDisplayText": null,
         "links": null,
         "advancedQueries": [
           {
-            "query": "avg(\ncontainer_cpu_cfs_throttled_periods_total/\ncontainer_cpu_cfs_periods_total{\n\tnamespace=~$namespace,    \n    pod=~\".*\", \n    container_name!=\"POD\", \n    image!=\"\" }\n * 100) BY (pod)",
+            "query": "sum(rate(sysdig_container_net_error_count{$__scope}[5m])) by (kube_workload_name) or vector(0)",
             "enabled": true,
             "displayInfo": {
               "displayName": "",
@@ -735,62 +388,342 @@
             "decimals": null,
             "minValue": 0,
             "maxValue": null,
+            "minInputFormat": "0-100",
+            "maxInputFormat": "0-100",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 7,
+        "type": "advancedTimechart",
+        "name": "The \"Deployment Gap\" ",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(kube_deployment_spec_replicas{$__scope}) by (kube_workload_name) - sum(kube_deployment_status_replicas_available{$__scope}) by (kube_workload_name)  or vector(0)",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": false,
+          "showMin": false,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
             "minInputFormat": "1",
             "maxInputFormat": "1",
             "scale": "linear"
           }
         },
-        "numberThresholds": null
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 8,
+        "type": "advancedTimechart",
+        "name": "The Stuck State",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(kube_pod_container_status_waiting_reason{$__scope}) by (reason, kube_workload_name)  or vector(0)",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "connectDotted",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": false,
+          "showMin": false,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 9,
+        "type": "advancedTimechart",
+        "name": "total number of issues in this workload",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "(\n  sum by (namespace, kube_workload_name) (\n    (count by (namespace, pod) (kube_pod_status_ready{$__scope, condition=\"false\"} == 1) > bool 0)\n  )\n+\n  sum by (namespace,kube_workload_name) (\n    (sum by (namespace) (kube_pod_container_status_waiting_reason{$__scope, reason=~\"ImagePullBackOff|ErrImagePull|CrashLoopBackOff\"} > 0) > bool 0)\n  )\n) or on() vector(0)\n",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "connectDotted",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": false,
+          "showMin": false,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 10,
+        "type": "advancedTimechart",
+        "name": "Node Drain Blocker",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "(\n  max by (kube_cluster_name, kube_namespace_name, poddisruptionbudget) (\n    kube_poddisruptionbudget_status_expected_pods{$__scope}\n  ) == 1\n)\nand\n(\n  max by (kube_cluster_name, kube_namespace_name, poddisruptionbudget) (\n    kube_poddisruptionbudget_status_desired_healthy{$__scope}\n  ) == 1\n)\nand\n(\n  max by (kube_cluster_name, kube_namespace_name, poddisruptionbudget) (\n    kube_poddisruptionbudget_status_pod_disruptions_allowed{$__scope}\n  ) == 0\n) or vector(0)\n",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": false,
+          "showMin": false,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
       }
     ],
     "scopeExpressionList": [
-      {
-        "operand": "kubernetes.cluster.name",
-        "operator": "in",
-        "displayName": "cluster",
-        "value": [
-          "silver"
-        ],
-        "descriptor": {
-          "documentId": "kubernetes.cluster.name",
-          "id": "kubernetes.cluster.name",
-          "metricType": "tag",
-          "type": "string",
-          "scale": 0,
-          "name": "kubernetes.cluster.name",
-          "description": "kubernetes.cluster.name",
-          "namespaces": [
-            "kubernetes.cluster"
-          ],
-          "scopes": [],
-          "timeAggregations": [
-            "concat",
-            "distinct",
-            "count"
-          ],
-          "groupAggregations": [
-            "concat",
-            "distinct",
-            "count"
-          ],
-          "aggregationForGroup": "none",
-          "hidden": false,
-          "experimental": false,
-          "deferred": false,
-          "identity": false,
-          "canMonitor": false,
-          "canGroupBy": true,
-          "canFilter": true,
-          "generatedFrom": "com.draios.model.metrics.custom.CustomMetric$Tag",
-          "publicId": "kube_cluster_name",
-          "heuristic": false,
-          "documentType": "metric",
-          "segment": false,
-          "documentTimestamp": 1771011941747
-        },
-        "variable": true,
-        "isVariable": true
-      },
       {
         "operand": "kubernetes.namespace.name",
         "operator": "in",
@@ -831,7 +764,52 @@
           "heuristic": false,
           "documentType": "metric",
           "segment": false,
-          "documentTimestamp": 1771011941747
+          "documentTimestamp": 1771020969863
+        },
+        "variable": true,
+        "isVariable": true
+      },
+      {
+        "operand": "kubernetes.cluster.name",
+        "operator": "in",
+        "displayName": "cluster",
+        "value": [],
+        "descriptor": {
+          "documentId": "kubernetes.cluster.name",
+          "id": "kubernetes.cluster.name",
+          "metricType": "tag",
+          "type": "string",
+          "scale": 0,
+          "name": "kubernetes.cluster.name",
+          "description": "kubernetes.cluster.name",
+          "namespaces": [
+            "kubernetes.cluster"
+          ],
+          "scopes": [],
+          "timeAggregations": [
+            "concat",
+            "distinct",
+            "count"
+          ],
+          "groupAggregations": [
+            "concat",
+            "distinct",
+            "count"
+          ],
+          "aggregationForGroup": "none",
+          "hidden": false,
+          "experimental": false,
+          "deferred": false,
+          "identity": false,
+          "canMonitor": false,
+          "canGroupBy": true,
+          "canFilter": true,
+          "generatedFrom": "com.draios.model.metrics.custom.CustomMetric$Tag",
+          "publicId": "kube_cluster_name",
+          "heuristic": false,
+          "documentType": "metric",
+          "segment": false,
+          "documentTimestamp": 1771020969863
         },
         "variable": true,
         "isVariable": true
@@ -854,82 +832,77 @@
       {
         "panelId": 2,
         "x": 8,
-        "y": 6,
+        "y": 0,
         "w": 8,
-        "h": 5
+        "h": 8
       },
       {
-        "panelId": 4,
+        "panelId": 3,
         "x": 16,
         "y": 0,
         "w": 8,
-        "h": 6
+        "h": 8
+      },
+      {
+        "panelId": 4,
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 8
       },
       {
         "panelId": 5,
         "x": 0,
-        "y": 0,
+        "y": 8,
         "w": 8,
-        "h": 11
+        "h": 8
       },
       {
         "panelId": 6,
-        "x": 0,
-        "y": 11,
+        "x": 8,
+        "y": 8,
         "w": 8,
         "h": 8
       },
       {
         "panelId": 7,
-        "x": 8,
-        "y": 11,
+        "x": 16,
+        "y": 8,
         "w": 8,
         "h": 8
       },
       {
         "panelId": 8,
-        "x": 16,
-        "y": 11,
+        "x": 0,
+        "y": 16,
         "w": 8,
-        "h": 4
+        "h": 8
       },
       {
         "panelId": 9,
-        "x": 0,
-        "y": 19,
+        "x": 16,
+        "y": 16,
         "w": 8,
         "h": 8
       },
       {
         "panelId": 10,
         "x": 8,
-        "y": 19,
+        "y": 16,
         "w": 8,
         "h": 8
-      },
-      {
-        "panelId": 11,
-        "x": 16,
-        "y": 15,
-        "w": 8,
-        "h": 5
-      },
-      {
-        "panelId": 12,
-        "x": 16,
-        "y": 6,
-        "w": 8,
-        "h": 5
-      },
-      {
-        "panelId": 13,
-        "x": 8,
-        "y": 0,
-        "w": 8,
-        "h": 6
       }
     ],
     "sharingSettings": [
+      {
+        "role": "ROLE_RESOURCE_EDIT",
+        "member": {
+          "type": "TEAM",
+          "id": 21060,
+          "name": "Platform Experience",
+          "teamTheme": "#73A1F7"
+        }
+      }
     ],
     "publicNotation": false,
     "schema": 3

@@ -36,9 +36,8 @@ spring_data_repository_invocations_seconds_max                k8s-pods
 spring_data_repository_invocations_seconds_count              k8s-pods
 workqueue_work_duration_seconds_bucket                        k8s-pods
 workqueue_queue_duration_seconds_bucket                       k8s-pods
-container_cpu_cfs_periods_total                               k8s-cadvisor-default
+
 container_cpu_cfs_throttled_seconds_total                     k8s-cadvisor-default
-container_cpu_cfs_throttled_periods_total                     k8s-cadvisor-default
 coredns_forward_request_duration_seconds_bucket               openshift-dns-default
 kyverno_client_queries_total                                  k8s-pods
 kyverno_admission_review_duration_seconds_count               k8s-pods

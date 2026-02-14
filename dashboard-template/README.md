@@ -7,6 +7,19 @@ This directory contains scripts for pulling dashboard templates from Sysdig and 
 - Sysdig API token (found in https://app.sysdigcloud.com/#/settings/user under "Sysdig Monitor API Token")
 - `jq` and `curl` installed
 
+Get your API Token
+
+**To find your API token:**
+
+1. Go to https://app.sysdigcloud.com/#/settings/user
+2. Look under "Sysdig Monitor API Token"
+
+Store your api token in root directory
+
+```
+ echo <api_token> > ~/.sysdig_metrics_token
+```
+
 ## Scripts
 
 ### 1. Pull Dashboard Template (`pull_dashboard.sh`) (Mainly for Admin use)
@@ -14,16 +27,19 @@ This directory contains scripts for pulling dashboard templates from Sysdig and 
 Pulls a dashboard from Sysdig and exports it as a reusable template.
 
 **Usage:**
+
 ```bash
-./pull_dashboard.sh <api_token> "<dashboard_name>"
+./pull_dashboard.sh "<dashboard_name>"
 ```
 
 **Example:**
+
 ```bash
-./pull_dashboard.sh "your-api-token" "Resource Allocation Dashboard"
+./pull_dashboard.sh "Resource Allocation Dashboard"
 ```
 
 **What it does:**
+
 1. Uses the provided Sysdig API token
 2. Uses the Dashboard Listing API to find all accessible dashboards
 3. Locates the specified dashboard by name
@@ -32,11 +48,8 @@ Pulls a dashboard from Sysdig and exports it as a reusable template.
 6. Saves the template as `template/dashboard_template_<safe_name>.json.j2`
 7. Saves the raw JSON as `output/source_dashboard_raw.json` for reference
 
-**To find your API token:**
-1. Go to https://app.sysdigcloud.com/#/settings/user
-2. Look under "Sysdig Monitor API Token"
-
 **To find team IDs:**
+
 ```bash
 # Get formatted list of teams with IDs
 TOKEN='YOUR_API_TOKEN'
@@ -55,21 +68,23 @@ curl -s -H "Authorization: Bearer $TOKEN" "https://app.sysdigcloud.com/api/v3/te
 Creates a new dashboard in a specific team using a template file.
 
 **Usage:**
+
 ```bash
 ./create_dashboard_from_template.sh <api_token> <template_file> <target_team_id>
 ```
 
 **Example:**
+
 ```bash
 ./create_dashboard_from_template.sh "your-api-token" template/dashboard_template_resources_quota_approve_dashboard.json.j2 50396
 ```
 
 **What it does:**
+
 1. Uses the provided API token
 2. Loads the template file and injects team-specific information
 3. Creates a new dashboard using the Create Dashboard API
 4. Saves the created dashboard details for reference
-
 
 ## Conclusion
 

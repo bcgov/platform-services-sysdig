@@ -1,0 +1,217 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  echo "Usage: $0 <silver|gold|golddr|emerald> <license-plate> <dev|test|prod|tools> [...]" >&2
+  echo "Example: $0 silver 101ed4 dev test" >&2
+  echo "Optional: DAYS=100 $0 silver 101ed4 prod" >&2
+}
+
+die() {
+  echo "Error: $*" >&2
+  exit 1
+}
+
+require_command() {
+  command -v "$1" >/dev/null 2>&1 || die "required command '$1' was not found"
+}
+
+cluster="${1:-}"
+plate="${2:-}"
+days="${DAYS:-30}"
+
+[[ $# -ge 3 ]] || {
+  usage
+  exit 1
+}
+
+case "$cluster" in
+  silver|gold|golddr|emerald) ;;
+  *) usage; exit 1 ;;
+esac
+
+[[ "$plate" =~ ^[a-z0-9]{6}$ ]] || die "license plate should be 6 lowercase letters/numbers"
+[[ "$days" =~ ^[0-9]+$ ]] && ((days >= 1 && days <= 365)) ||
+  die "DAYS must be an integer from 1 to 365"
+
+require_command oc
+require_command curl
+require_command jq
+require_command awk
+require_command tr
+
+server="https://api.${cluster}.devops.gov.bc.ca:6443"
+current_server="$(oc whoami --show-server 2>/dev/null || true)"
+
+if [[ "$current_server" != "$server" ]] || ! oc whoami >/dev/null 2>&1; then
+  echo "Logging in to ${server} through the web browser..."
+  oc login -w --server="$server"
+fi
+
+actual_server="$(oc whoami --show-server)"
+[[ "$actual_server" == "$server" ]] ||
+  die "login completed against ${actual_server}, expected ${server}"
+
+THANOS_URL="$(oc get route thanos-querier -n openshift-monitoring -o jsonpath='{.spec.host}')"
+TOKEN="$(oc whoami -t)"
+[[ -n "$THANOS_URL" ]] || die "could not determine the Thanos route"
+[[ -n "$TOKEN" ]] || die "could not obtain an OpenShift token"
+
+BASE_URL="https://${THANOS_URL}/api/v1/query"
+
+query() {
+  local promql="$1"
+  local response
+
+  response="$(
+    curl -ksS \
+      -H "Authorization: Bearer ${TOKEN}" \
+      --data-urlencode "query=${promql}" \
+      "${BASE_URL}"
+  )" || die "request to Thanos failed"
+
+  if ! jq -e '.status == "success" and (.data.result | type == "array")' >/dev/null <<<"$response"; then
+    echo "Thanos query failed: $(jq -r '.error // .status // "invalid response"' <<<"$response" 2>/dev/null || echo "invalid JSON")" >&2
+    return 1
+  fi
+
+  printf '%s\n' "$response"
+}
+
+scalar_value() {
+  query "$1" | jq -r '.data.result[0].value[1] // "NaN"'
+}
+
+format_number() {
+  awk -v value="$1" -v decimals="${2:-2}" '
+    BEGIN {
+      if (value == "NaN" || value == "+Inf" || value == "-Inf") {
+        print value
+      } else {
+        printf "%.*f", decimals, value
+      }
+    }
+  '
+}
+
+bytes_to_gib() {
+  awk -v bytes="$1" '
+    BEGIN {
+      if (bytes == "NaN" || bytes == "+Inf" || bytes == "-Inf") {
+        print bytes
+      } else {
+        printf "%.2f", bytes / 1024 / 1024 / 1024
+      }
+    }
+  '
+}
+
+pct() {
+  awk -v used="$1" -v total="$2" '
+    BEGIN {
+      if (used == "NaN" || total == "NaN" || total == 0) {
+        print "NaN"
+      } else {
+        printf "%.2f", 100 * used / total
+      }
+    }
+  '
+}
+
+print_header() {
+  printf '\n============================================================\n%s\n============================================================\n' "$1"
+}
+
+print_kv() {
+  printf "%-46s %s\n" "$1" "$2"
+}
+
+print_pvc_table() {
+  local usage_json="$1"
+  local used_json="$2"
+  local capacity_json="$3"
+
+  jq -rs '
+    def rows:
+      .data.result[]? | {
+        pvc: (.metric.persistentvolumeclaim // ""),
+        value: (.value[1] | tonumber)
+      };
+
+    (.[0] | [rows] | map({key: .pvc, value: .value}) | from_entries) as $usage |
+    (.[1] | [rows] | map({key: .pvc, value: .value}) | from_entries) as $used |
+    (.[2] | [rows] | map({key: .pvc, value: .value}) | from_entries) as $capacity |
+    ($capacity | keys_unsorted[]) as $pvc |
+    [$pvc, ($used[$pvc] // 0), ($capacity[$pvc] // 0), ($usage[$pvc] // 0)] | @tsv
+  ' <<<"${usage_json}"$'\n'"${used_json}"$'\n'"${capacity_json}" |
+    awk -F '\t' '
+      BEGIN { printf "%-48s %10s %10s %8s\n", "PVC", "Used GiB", "Size GiB", "Used %" }
+      { printf "%-48s %10.2f %10.2f %7.2f%%\n", $1, $2, $3, $4 }
+    '
+}
+
+report_namespace() {
+  local namespace="$1"
+
+  local cpu_requests='sum(kube_pod_container_resource_requests{namespace="'"${namespace}"'",resource="cpu"})'
+  local mem_requests='sum(kube_pod_container_resource_requests{namespace="'"${namespace}"'",resource="memory"})'
+  local cpu_quota='sum(kube_resourcequota{namespace="'"${namespace}"'",type="hard",resource="requests.cpu"})'
+  local mem_quota='sum(kube_resourcequota{namespace="'"${namespace}"'",type="hard",resource="requests.memory"})'
+  local storage_used='sum(kube_resourcequota{namespace="'"${namespace}"'",type="used",resource="requests.storage"})'
+  local storage_quota='sum(kube_resourcequota{namespace="'"${namespace}"'",type="hard",resource="requests.storage"})'
+  local cpu_peak='max_over_time(namespace:container_cpu_usage:sum{namespace="'"${namespace}"'"}['"${days}"'d])'
+  local mem_peak='max_over_time(namespace:container_memory_working_set_bytes:sum{namespace="'"${namespace}"'"}['"${days}"'d])'
+  local mem_peak_fallback='max_over_time(sum(container_memory_working_set_bytes{namespace="'"${namespace}"'",container!="",pod!=""})['"${days}"'d:5m])'
+
+  local cpu_req_cores mem_req_bytes cpu_quota_cores mem_quota_bytes
+  local storage_used_bytes storage_quota_bytes storage_used_pct
+  local cpu_peak_cores mem_peak_bytes cpu_req_used_pct mem_req_used_pct
+  local cpu_peak_pct_quota mem_peak_pct_quota cpu_peak_pct_req mem_peak_pct_req
+
+  cpu_req_cores="$(scalar_value "$cpu_requests")"
+  mem_req_bytes="$(scalar_value "$mem_requests")"
+  cpu_quota_cores="$(scalar_value "$cpu_quota")"
+  mem_quota_bytes="$(scalar_value "$mem_quota")"
+  storage_used_bytes="$(scalar_value "$storage_used")"
+  storage_quota_bytes="$(scalar_value "$storage_quota")"
+  cpu_peak_cores="$(scalar_value "$cpu_peak")"
+  mem_peak_bytes="$(scalar_value "$mem_peak")"
+  [[ "$mem_peak_bytes" != "NaN" ]] || mem_peak_bytes="$(scalar_value "$mem_peak_fallback")"
+  storage_used_pct="$(pct "$storage_used_bytes" "$storage_quota_bytes")"
+  cpu_req_used_pct="$(pct "$cpu_req_cores" "$cpu_quota_cores")"
+  mem_req_used_pct="$(pct "$mem_req_bytes" "$mem_quota_bytes")"
+  cpu_peak_pct_quota="$(pct "$cpu_peak_cores" "$cpu_quota_cores")"
+  mem_peak_pct_quota="$(pct "$mem_peak_bytes" "$mem_quota_bytes")"
+  cpu_peak_pct_req="$(pct "$cpu_peak_cores" "$cpu_req_cores")"
+  mem_peak_pct_req="$(pct "$mem_peak_bytes" "$mem_req_bytes")"
+
+  print_header "Quota Review Summary for ${namespace} (${days}d window)"
+  print_kv "CPU requests / quota:" "$(format_number "$cpu_req_cores") / $(format_number "$cpu_quota_cores") cores ($(format_number "$cpu_req_used_pct")%)"
+  print_kv "${days}d peak actual CPU / quota:" "$(format_number "$cpu_peak_cores") / $(format_number "$cpu_quota_cores") cores ($(format_number "$cpu_peak_pct_quota")%)"
+  print_kv "${days}d peak actual CPU / requests:" "$(format_number "$cpu_peak_pct_req")%"
+  print_kv "Memory requests / quota:" "$(bytes_to_gib "$mem_req_bytes") / $(bytes_to_gib "$mem_quota_bytes") GiB ($(format_number "$mem_req_used_pct")%)"
+  print_kv "${days}d peak actual memory / quota:" "$(bytes_to_gib "$mem_peak_bytes") / $(bytes_to_gib "$mem_quota_bytes") GiB ($(format_number "$mem_peak_pct_quota")%)"
+  print_kv "${days}d peak actual memory / requests:" "$(format_number "$mem_peak_pct_req")%"
+  print_kv "Storage requested / quota:" "$(bytes_to_gib "$storage_used_bytes") / $(bytes_to_gib "$storage_quota_bytes") GiB ($(format_number "$storage_used_pct")%)"
+
+  local pvc_usage='sort_desc(100 * max by (persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace="'"${namespace}"'"}) / max by (persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace="'"${namespace}"'"}))'
+  local pvc_used='sort_desc(max by (persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace="'"${namespace}"'"}) / 1024 / 1024 / 1024)'
+  local pvc_capacity='sort_desc(max by (persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace="'"${namespace}"'"}) / 1024 / 1024 / 1024)'
+
+  print_header "PVC Filesystem Usage"
+  print_pvc_table "$(query "$pvc_usage")" "$(query "$pvc_used")" "$(query "$pvc_capacity")"
+}
+
+shift 2
+for env in "$@"; do
+  env="$(printf '%s' "$env" | tr '[:upper:]' '[:lower:]')"
+  case "$env" in
+    dev|development) suffix="dev" ;;
+    test) suffix="test" ;;
+    prod|production) suffix="prod" ;;
+    tools) suffix="tools" ;;
+    *) die "unknown environment '${env}'" ;;
+  esac
+
+  report_namespace "${plate}-${suffix}"
+done

@@ -4,7 +4,7 @@ Hi <quota contact>,
 
 I reviewed the Registry request, but I could not find enough quota justification to validate the requested values.
 
-Decision: Do Not Approve Yet
+Decision: Pending, more information needed
 
 Could you please add the workload reason and sizing details for the requested increase?
 

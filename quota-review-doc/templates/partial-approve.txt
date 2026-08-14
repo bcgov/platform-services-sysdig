@@ -1,0 +1,22 @@
+Subject: Re: Quota Request
+
+Hi <quota contact>,
+
+Thanks for the justification. I reviewed the requested quota changes for <license-plate> in <cluster>. 
+Some requested changes are supported by the Registry justification and current usage, 
+but the remaining changes need more sizing detail before numeric approval.
+
+Decision: Partial Approval, more information needed
+
+Approved changes:
+- <supported change>
+
+Held changes:
+- <held change>
+
+Missing evidence:
+- <focused item needed to validate the held value>
+
+Thanks,
+Billy
+

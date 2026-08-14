@@ -1,0 +1,20 @@
+Subject: Re: Quota Request
+
+Hi <quota contact>,
+
+I reviewed the Registry request, but I could not find enough quota justification to validate the requested values.
+
+Decision: Pending, more information needed
+
+Could you please add the workload reason and sizing details for the requested increase?
+
+Please include:
+- affected workload or new components
+- CPU and memory requests/limits
+- replica counts and HPA behavior
+- PVC sizing, retention, ingestion, growth, and backup/object storage details, if storage is requested
+- whether the capacity is temporary or steady-state
+
+Thanks,
+Billy
+

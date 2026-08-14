@@ -1,0 +1,22 @@
+Subject: Re: Quota Request
+
+Hi <quota contact>,
+
+Thanks for the storage justification. I reviewed the request for <license-plate> and can see that the namespace is hitting storage allocation pressure, so an increase is needed to unblock the next deployment/PVC change.
+
+At the same time, the current PVC filesystem usage is still low compared with the allocated PVC capacity. Because of that, I can approve a staged increase now, but I cannot validate the full requested permanent quota yet.
+
+I approved:
+- <environment> storage: <old value> -> <staged value>
+
+I held for now:
+- <remaining requested storage>
+
+Could you please revise the request to the staged value, or confirm why the full requested storage is required immediately?
+
+If the PVCs can start smaller, please use the smaller initial size and expand them later as actual usage grows. In OpenShift 4.x, PVCs can usually be expanded incrementally when the storage class allows expansion.
+
+If the full value is required now, please include the PVC-by-PVC sizing, retention period, expected ingestion/growth, backup/object-storage plan, and whether any of the storage is temporary.
+
+Thanks,
+Billy

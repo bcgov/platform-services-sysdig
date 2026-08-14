@@ -1,0 +1,19 @@
+Subject: Re: Quota Request
+
+Hi <quota contact>,
+
+Thanks for the context. Some further information about your project is still needed for me to make a decision.```
+
+Decision: Pending, more information needed
+
+Could you please confirm:
+- affected workload or new components
+- CPU and memory requests/limits per component
+- replica counts, HPA, and rollout surge behavior
+- recent peaks, restarts, or OOMKilled evidence, if this is existing workload growth
+- PVC count, size, retention, ingestion, growth, and backup/object storage plan, if storage is requested
+- whether the capacity is temporary or steady-state
+
+Thanks,
+Billy
+

@@ -6,7 +6,7 @@ Thanks for the justification. I reviewed the requested quota changes for <licens
 Some requested changes are supported by the Registry justification and current usage, 
 but the remaining changes need more sizing detail before numeric approval.
 
-Decision: Partial Approve
+Decision: Partial Approval, more information needed
 
 Approved changes:
 - <supported change>

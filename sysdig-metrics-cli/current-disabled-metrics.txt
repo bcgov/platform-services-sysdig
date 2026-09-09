@@ -1,7 +1,6 @@
 # metricName                                                  jobName
 container_cpu_usage_seconds_total                             k8s-cadvisor-default
 container_spec_cpu_period                                     k8s-cadvisor-default
-kyverno_admission_review_duration_seconds_bucket              k8s-pods
 grpc_server_handled_total                                     k8s-pods
 fluentd_output_status_slow_flush_count                        openshift-fluentd-default
 erlang_vm_allocators                                          k8s-pods

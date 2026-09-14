@@ -20,13 +20,13 @@ jobs:
       - name: Download dashboards
         env:
           TOKEN: ${{ secrets.SYSDIG_METRICS_TOKEN }}
-        run: ./template-backup/backup_dashboards.sh
+        run: ./platform-services-dashboard-backup/backup_dashboards.sh
 
       # Local act runs should test the download without creating or pushing a commit.
       - name: Commit changes
         if: env.DRY_RUN != 'true'
         run: |
-          git add template-backup/dashboards
+          git add platform-services-dashboard-backup/dashboards
           if git diff --cached --quiet; then
             echo "No dashboard changes"
             exit 0

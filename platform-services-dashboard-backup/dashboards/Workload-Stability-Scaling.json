@@ -1,0 +1,929 @@
+{
+  "dashboard": {
+    "id": 451941,
+    "teamId": 21060,
+    "userId": 51577,
+    "name": "Workload Stability & Scaling",
+    "panels": [
+      {
+        "id": 2,
+        "type": "advancedTimechart",
+        "name": " CPU Throttling Percentage",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "clamp_min(\n  (\n    100 *\n    sum(rate(container_cpu_cfs_throttled_periods_total{$__scope}[5m])) by (kube_workload_name)\n    /\n    clamp_min(sum(rate(container_cpu_cfs_periods_total{$__scope}[5m])) by (kube_workload_name), 1)\n  ) - 5,\n  0\n) or on() vector(0)\n",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "",
+              "timeSeriesDisplayNameTemplate": "CPU requested (cores)",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "connectDotted",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": false,
+          "showMin": false,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 3,
+        "type": "advancedTimechart",
+        "name": "Crash & Restart Trends",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(increase(kube_pod_container_status_restarts_total{$__scope}[1h])) by (kube_workload_name) or vector(0)",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "connectDotted",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": false,
+          "showMin": false,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 4,
+        "type": "advancedTimechart",
+        "name": "OOMKill & Termination Reason History",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(kube_pod_container_status_terminated_reason{$__scope, reason=\"OOMKilled\"}) by (kube_workload_name) or vector(0)",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "connectDotted",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": false,
+          "showMin": false,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 5,
+        "type": "advancedTimechart",
+        "name": "“HPA headroom deficit % above threshold",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "max(\n  clamp_min(\n    100 * (\n      max by (cluster, namespace, hpa) (kube_horizontalpodautoscaler_status_current_replicas{$__scope})\n      /\n      clamp_min(max by (cluster, namespace, hpa) (kube_horizontalpodautoscaler_spec_max_replicas{$__scope}), 1)\n    ) - 80,\n    0\n  )\n) or vector(0)\n",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "connectDotted",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": false,
+          "showMin": false,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 6,
+        "type": "advancedTimechart",
+        "name": "4. Network Error Rate ",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(rate(sysdig_container_net_error_count{$__scope}[5m])) by (kube_workload_name) or vector(0)",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-100",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "connectDotted",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": false,
+          "showMin": false,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "0-100",
+            "maxInputFormat": "0-100",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "0-100",
+            "maxInputFormat": "0-100",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 7,
+        "type": "advancedTimechart",
+        "name": "The \"Deployment Gap\" ",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "clamp_min(\n  sum(kube_deployment_spec_replicas{$__scope}) by (kube_workload_name)\n  - sum(kube_deployment_status_replicas_available{$__scope}) by (kube_workload_name),\n  0\n) or on() vector(0)\n",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": false,
+          "showMin": false,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 8,
+        "type": "advancedTimechart",
+        "name": "The Stuck State",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(kube_pod_container_status_waiting_reason{$__scope, reason=~\"CrashLoopBackOff|ImagePullBackOff|ErrImagePull\"}) by (kube_workload_name, reason)\nor on() vector(0)\n",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "connectDotted",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": false,
+          "showMin": false,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 9,
+        "type": "advancedTimechart",
+        "name": "total number of issues in this workload",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "(\n  sum by (namespace) (\n    (count by (namespace, pod) (kube_pod_status_ready{$__scope, condition=\"false\"} == 1) > bool 0)\n  )\n+\n  sum by (namespace) (\n    (sum by (namespace) (kube_pod_container_status_waiting_reason{$__scope, reason=~\"ImagePullBackOff|ErrImagePull|CrashLoopBackOff\"} > 0) > bool 0)\n  )\n) or on() vector(0)\n",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "connectDotted",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": false,
+          "showMin": false,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 10,
+        "type": "advancedTimechart",
+        "name": "Node Drain Blocker",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum by (kube_cluster_name, kube_namespace_name) (\n  (\n    max by (kube_cluster_name, kube_namespace_name, poddisruptionbudget)\n      (kube_poddisruptionbudget_status_pod_disruptions_allowed{$__scope}) == bool 0\n  )\n  *\n  (\n    max by (kube_cluster_name, kube_namespace_name, poddisruptionbudget)\n      (kube_poddisruptionbudget_status_expected_pods{$__scope}) > bool 0\n  )\n) or on() vector(0)\n",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": false,
+          "showMin": false,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      }
+    ],
+    "scopeExpressionList": [
+      {
+        "operand": "kubernetes.namespace.name",
+        "operator": "in",
+        "displayName": "namespace",
+        "value": [],
+        "descriptor": {
+          "documentId": "kubernetes.namespace.name",
+          "id": "kubernetes.namespace.name",
+          "metricType": "tag",
+          "type": "string",
+          "scale": 0,
+          "name": "kubernetes.namespace.name",
+          "description": "kubernetes.namespace.name",
+          "namespaces": [
+            "kubernetes.namespace"
+          ],
+          "scopes": [],
+          "timeAggregations": [
+            "concat",
+            "distinct",
+            "count"
+          ],
+          "groupAggregations": [
+            "concat",
+            "distinct",
+            "count"
+          ],
+          "aggregationForGroup": "none",
+          "hidden": false,
+          "experimental": false,
+          "deferred": false,
+          "identity": false,
+          "canMonitor": false,
+          "canGroupBy": true,
+          "canFilter": true,
+          "generatedFrom": "com.draios.model.metrics.custom.CustomMetric$Tag",
+          "publicId": "kube_namespace_name",
+          "heuristic": false,
+          "documentType": "metric",
+          "documentTimestamp": 1789168460272,
+          "segment": false
+        },
+        "operandPublicId": "kube_namespace_name",
+        "variable": true,
+        "isVariable": true
+      },
+      {
+        "operand": "kubernetes.cluster.name",
+        "operator": "in",
+        "displayName": "cluster",
+        "value": [],
+        "descriptor": {
+          "documentId": "kubernetes.cluster.name",
+          "id": "kubernetes.cluster.name",
+          "metricType": "tag",
+          "type": "string",
+          "scale": 0,
+          "name": "kubernetes.cluster.name",
+          "description": "kubernetes.cluster.name",
+          "namespaces": [
+            "kubernetes.cluster"
+          ],
+          "scopes": [],
+          "timeAggregations": [
+            "concat",
+            "distinct",
+            "count"
+          ],
+          "groupAggregations": [
+            "concat",
+            "distinct",
+            "count"
+          ],
+          "aggregationForGroup": "none",
+          "hidden": false,
+          "experimental": false,
+          "deferred": false,
+          "identity": false,
+          "canMonitor": false,
+          "canGroupBy": true,
+          "canFilter": true,
+          "generatedFrom": "com.draios.model.metrics.custom.CustomMetric$Tag",
+          "publicId": "kube_cluster_name",
+          "heuristic": false,
+          "documentType": "metric",
+          "documentTimestamp": 1789168460272,
+          "segment": false
+        },
+        "operandPublicId": "kube_cluster_name",
+        "variable": true,
+        "isVariable": true
+      }
+    ],
+    "eventDisplaySettings": {
+      "enabled": true,
+      "queryParams": {
+        "severities": [],
+        "alertStatuses": [],
+        "categories": [],
+        "filter": "",
+        "teamScope": false
+      }
+    },
+    "shared": true,
+    "public": false,
+    "version": 86,
+    "createdOn": 1769547928011,
+    "modifiedOn": 1771027477453,
+    "description": "",
+    "layout": [
+      {
+        "panelId": 2,
+        "x": 8,
+        "y": 0,
+        "w": 8,
+        "h": 8
+      },
+      {
+        "panelId": 3,
+        "x": 16,
+        "y": 0,
+        "w": 8,
+        "h": 8
+      },
+      {
+        "panelId": 4,
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 8
+      },
+      {
+        "panelId": 5,
+        "x": 0,
+        "y": 8,
+        "w": 8,
+        "h": 8
+      },
+      {
+        "panelId": 6,
+        "x": 8,
+        "y": 8,
+        "w": 8,
+        "h": 8
+      },
+      {
+        "panelId": 7,
+        "x": 16,
+        "y": 8,
+        "w": 8,
+        "h": 8
+      },
+      {
+        "panelId": 8,
+        "x": 0,
+        "y": 16,
+        "w": 8,
+        "h": 8
+      },
+      {
+        "panelId": 9,
+        "x": 16,
+        "y": 16,
+        "w": 8,
+        "h": 8
+      },
+      {
+        "panelId": 10,
+        "x": 8,
+        "y": 16,
+        "w": 8,
+        "h": 8
+      }
+    ],
+    "sharingSettings": [
+      {
+        "role": "ROLE_RESOURCE_EDIT",
+        "member": {
+          "type": "TEAM",
+          "id": 21060,
+          "name": "Platform Experience",
+          "teamTheme": "#73A1F7"
+        }
+      }
+    ],
+    "lastAccessedOnByCurrentUser": 1773253978510,
+    "publicNotation": false,
+    "publicToken": "41a49c7f74fa4d62a7e6b08e28a65aa6",
+    "favorite": true,
+    "schema": 3,
+    "username": "Billy Li  (billy.li@gov.bc.ca)",
+    "permissions": [
+      "dashboards.edit",
+      "dashboards.delete",
+      "dashboards.sharing",
+      "dashboards.read",
+      "dashboards.transfer"
+    ]
+  }
+}

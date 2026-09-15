@@ -1,0 +1,3557 @@
+{
+  "dashboard": {
+    "id": 479193,
+    "teamId": 21060,
+    "userId": 51577,
+    "name": "Cluster Capacity",
+    "panels": [
+      {
+        "id": 12,
+        "type": "text",
+        "name": "New Panel (4)",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "markdownSource": "⛳️ **Your nodes can allocate pods whose memory or CPU limits surpass the capacity**. This situation is called *over-commit* and can lead to pod evictions and problems in the nodes.",
+        "transparentBackground": false,
+        "panelTitleVisible": false,
+        "textAutosized": false
+      },
+      {
+        "id": 19,
+        "type": "advancedNumber",
+        "name": "Cluster: Limit Over-commit of CPU Cores",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(sum by (kube_cluster_name)(kube_pod_container_resource_limits{resource=\"cpu\",kube_cluster_name=$cluster, kube_workload_type=~$type}) - sum by (kube_cluster_name)(kube_node_status_capacity_cpu_cores{kube_cluster_name=$cluster}))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [
+            {
+              "severity": "high",
+              "value": 0,
+              "inputFormat": "1",
+              "displayText": ""
+            }
+          ],
+          "base": {
+            "severity": "ok",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 20,
+        "type": "advancedTimechart",
+        "name": "Node: Limit Over-commit of Memory",
+        "description": "",
+        "nullValueDisplayText": "No nodes with memory over-commit",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "topk(20,(sum by (kube_cluster_name,kube_node_name)(kube_pod_container_resource_limits{resource=\"memory\",kube_cluster_name=$cluster, kube_workload_type=~$type}) - sum by (kube_cluster_name,kube_node_name)(kube_node_status_capacity_memory_bytes{kube_cluster_name=$cluster}) > 0))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Node < Cluster",
+              "timeSeriesDisplayNameTemplate": "{{kube_node_name}} < {{kube_cluster_name}}",
+              "type": "stackedArea"
+            },
+            "format": {
+              "unit": "byte",
+              "inputFormat": "B",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": null,
+          "showMin": null,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "B",
+            "maxInputFormat": "B",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": null
+      },
+      {
+        "id": 22,
+        "type": "advancedNumber",
+        "name": "Cluster: Limit Over-commit of Memory",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(sum by (kube_cluster_name)(kube_pod_container_resource_limits{resource=\"memory\",kube_cluster_name=$cluster, kube_workload_type=~$type}) - sum by (kube_cluster_name)(kube_node_status_capacity_memory_bytes{kube_cluster_name=$cluster}))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Node < Cluster",
+              "timeSeriesDisplayNameTemplate": "{{node}} < {{cluster}}",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [
+            {
+              "severity": "high",
+              "value": 0,
+              "inputFormat": "1",
+              "displayText": ""
+            }
+          ],
+          "base": {
+            "severity": "ok",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 23,
+        "type": "advancedTimechart",
+        "name": "Node: Limit  Over-commit of CPU",
+        "description": "",
+        "nullValueDisplayText": "No nodes with CPU over-commit",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "topk(20,(sum by (kube_cluster_name,kube_node_name)(kube_pod_container_resource_limits{resource=\"cpu\",kube_cluster_name=$cluster, kube_workload_type=~$type}) - sum by (kube_cluster_name,kube_node_name)(kube_node_status_capacity_cpu_cores{kube_cluster_name=$cluster}) > 0))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Node < Cluster",
+              "timeSeriesDisplayNameTemplate": "{{kube_node_name}} < {{kube_cluster_name}}",
+              "type": "stackedArea"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": null,
+          "showMin": null,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "0-100",
+            "maxInputFormat": "0-100",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "0-100",
+            "maxInputFormat": "0-100",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": null
+      },
+      {
+        "id": 26,
+        "type": "advancedNumber",
+        "name": "Cluster: % CPU Used vs Limits",
+        "description": "Only containers with 'Resource Limits' are taken into account.",
+        "nullValueDisplayText": "No 'Resource Limits' configured for containers.",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum by (kube_cluster_name)(rate(sysdig_container_cpu_cores_used{kube_cluster_name=$cluster,kube_namespace_name=~$namespace, kube_workload_type=~$type}[$__interval]) and on (container_id)(avg_over_time(kube_pod_container_resource_limits{resource=\"cpu\",kube_cluster_name=$cluster,kube_namespace_name=~$namespace, kube_workload_type=~$type}[$__interval]))) / sum by (kube_cluster_name)(avg_over_time(kube_pod_container_resource_limits{resource=\"cpu\",kube_cluster_name=$cluster,kube_namespace_name=~$namespace, kube_workload_type=~$type}[$__interval]))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [
+            {
+              "severity": "high",
+              "value": 150,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "medium",
+              "value": 125,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "ok",
+              "value": 75,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "medium",
+              "value": 50,
+              "inputFormat": "0-100",
+              "displayText": ""
+            }
+          ],
+          "base": {
+            "severity": "high",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 27,
+        "type": "advancedTimechart",
+        "name": "Namespace: % CPU Used vs Requested",
+        "description": "Only containers with 'Resource Requests' are taken into account.",
+        "nullValueDisplayText": "No 'Resource Requests' configured for containers.",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "bottomk(20,sum by (kube_cluster_name,kube_namespace_name)(rate(sysdig_container_cpu_cores_used{kube_cluster_name=$cluster,kube_namespace_name=~$namespace, kube_workload_type=~$type}[$__interval]) and on (container_id)(kube_pod_container_resource_requests{resource=\"cpu\",kube_cluster_name=$cluster,kube_namespace_name=~$namespace, kube_workload_type=~$type} != 0)) / sum by (kube_cluster_name,kube_namespace_name)(kube_pod_container_resource_requests{resource=\"cpu\",kube_cluster_name=$cluster,kube_namespace_name=~$namespace, kube_workload_type=~$type}))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Namespace < Cluster",
+              "timeSeriesDisplayNameTemplate": "{{kube_namespace_name}} < {{kube_cluster_name}}",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullZero",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": null,
+          "showMin": null,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "0-100",
+            "maxInputFormat": "0-100",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "0-100",
+            "maxInputFormat": "0-100",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": null
+      },
+      {
+        "id": 28,
+        "type": "advancedTimechart",
+        "name": "Namespace: % CPU Used vs Limits",
+        "description": "Only containers with 'Resource Limits' are taken into account.",
+        "nullValueDisplayText": "No 'Resource Limits' configured for containers.",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "bottomk(20,sum by (kube_cluster_name,kube_namespace_name)(rate(sysdig_container_cpu_cores_used{kube_cluster_name=$cluster,kube_namespace_name=~$namespace, kube_workload_type=~$type}[$__interval]) and on (container_id)(kube_pod_container_resource_limits{resource=\"cpu\",kube_cluster_name=$cluster,kube_namespace_name=~$namespace, kube_workload_type=~$type})) / sum by (kube_cluster_name,kube_namespace_name)(kube_pod_container_resource_limits{resource=\"cpu\",kube_cluster_name=$cluster,kube_namespace_name=~$namespace, kube_workload_type=~$type}))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Namespace < Cluster",
+              "timeSeriesDisplayNameTemplate": "{{kube_namespace_name}} < {{kube_cluster_name}}",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": null,
+          "showMin": null,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "0-100",
+            "maxInputFormat": "0-100",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "0-100",
+            "maxInputFormat": "0-100",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": null
+      },
+      {
+        "id": 29,
+        "type": "advancedNumber",
+        "name": "Cluster: % Memory Used vs Requested",
+        "description": "Only containers with 'Resource Requests' are taken into account.",
+        "nullValueDisplayText": "No 'Resource Requests' configured for containers.",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum by (kube_cluster_name)(rate(sysdig_container_memory_used_bytes{kube_cluster_name=$cluster,kube_namespace_name=~$namespace, kube_workload_type=~$type}[$__interval]) and on (container_id)(avg_over_time(kube_pod_container_resource_requests{resource=\"memory\",kube_cluster_name=$cluster,kube_namespace_name=~$namespace, kube_workload_type=~$type}[$__interval]) != 0)) / sum by (kube_cluster_name)(avg_over_time(kube_pod_container_resource_requests{resource=\"memory\",kube_cluster_name=$cluster,kube_namespace_name=~$namespace, kube_workload_type=~$type}[$__interval]))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [
+            {
+              "severity": "high",
+              "value": 150,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "medium",
+              "value": 125,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "ok",
+              "value": 75,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "medium",
+              "value": 50,
+              "inputFormat": "0-100",
+              "displayText": ""
+            }
+          ],
+          "base": {
+            "severity": "high",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 30,
+        "type": "advancedNumber",
+        "name": "Cluster: % Memory Used vs Limits",
+        "description": "Only containers with 'Resource Limits' are taken into account.",
+        "nullValueDisplayText": "No 'Resource Limits' configured for containers.",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum by (kube_cluster_name)(rate(sysdig_container_memory_used_bytes{kube_namespace_name=~$namespace, kube_cluster_name=$cluster, kube_workload_type=~$type}[$__interval]) and on (container_id) (avg_over_time(kube_pod_container_resource_limits{resource=\"memory\", kube_namespace_name=~$namespace, kube_cluster_name=$cluster, kube_workload_type=~$type}[$__interval]))) / sum by (kube_cluster_name) (avg_over_time(kube_pod_container_resource_limits{resource=\"memory\", kube_namespace_name=~$namespace, kube_cluster_name=$cluster, kube_workload_type=~$type}[$__interval]))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [
+            {
+              "severity": "high",
+              "value": 150,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "medium",
+              "value": 125,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "ok",
+              "value": 75,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "medium",
+              "value": 50,
+              "inputFormat": "0-100",
+              "displayText": ""
+            }
+          ],
+          "base": {
+            "severity": "high",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 31,
+        "type": "advancedTimechart",
+        "name": "Namespace: % Memory Used vs Requested",
+        "description": "Only containers with 'Resource Requests' are taken into account.",
+        "nullValueDisplayText": "No 'Resource Requests' configured for containers.",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "bottomk(20,sum by (kube_cluster_name,kube_namespace_name)(rate(sysdig_container_memory_used_bytes{kube_cluster_name=$cluster,kube_namespace_name=~$namespace, kube_workload_type=~$type}[$__interval]) and on (container_id) kube_pod_container_resource_requests{resource=\"memory\",kube_cluster_name=$cluster,kube_namespace_name=~$namespace, kube_workload_type=~$type} != 0) / sum by (kube_cluster_name,kube_namespace_name)(kube_pod_container_resource_requests{resource=\"memory\",kube_cluster_name=$cluster,kube_namespace_name=~$namespace, kube_workload_type=~$type}))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Namespace < Cluster",
+              "timeSeriesDisplayNameTemplate": "{{kube_namespace_name}} < {{kube_cluster_name}}",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullZero",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": null,
+          "showMin": null,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "0-100",
+            "maxInputFormat": "0-100",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": null
+      },
+      {
+        "id": 32,
+        "type": "advancedTimechart",
+        "name": "Namespace: % Memory Used vs Limits",
+        "description": "Only containers with 'Resource Limits' are taken into account.",
+        "nullValueDisplayText": "No 'Resource Limits' configured for containers.",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "bottomk(20,sum by (kube_cluster_name,kube_namespace_name)(rate(sysdig_container_memory_used_bytes{kube_namespace_name=~$namespace, kube_cluster_name=$cluster, kube_workload_type=~$type}[$__interval]) and on (container_id) kube_pod_container_resource_limits{resource=\"memory\", kube_namespace_name=~$namespace, kube_cluster_name=$cluster, kube_workload_type=~$type}) / sum by (kube_cluster_name, kube_namespace_name) (kube_pod_container_resource_limits{resource=\"memory\", kube_namespace_name=~$namespace, kube_cluster_name=$cluster, kube_workload_type=~$type}))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Namespace < Cluster",
+              "timeSeriesDisplayNameTemplate": "{{kube_namespace_name}} < {{kube_cluster_name}}",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": null,
+          "showMin": null,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "0-100",
+            "maxInputFormat": "0-100",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "0-100",
+            "maxInputFormat": "0-100",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": null
+      },
+      {
+        "id": 35,
+        "type": "advancedNumber",
+        "name": "# of containers without memory limits",
+        "description": "",
+        "nullValueDisplayText": "No limits configured for containers.",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "count(kube_pod_container_info{kube_cluster_name!=\"\", kube_cluster_name=$cluster,kube_namespace_name=~$namespace,kube_workload_name=~$workload, kube_workload_type=~$type} unless on(container_id) kube_pod_container_resource_limits{resource=\"memory\",kube_cluster_name!=\"\", kube_cluster_name=$cluster,kube_namespace_name=~$namespace,kube_workload_name=~$workload, kube_workload_type=~$type})",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 36,
+        "type": "advancedNumber",
+        "name": "% of containers memory without limits",
+        "description": "",
+        "nullValueDisplayText": "No limits configured for containers.",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "count(kube_pod_container_info{kube_cluster_name!=\"\", kube_cluster_name=$cluster,kube_namespace_name=~$namespace,kube_workload_name=~$workload, kube_workload_type=~$type} unless on(container_id) kube_pod_container_resource_limits{resource=\"memory\",kube_cluster_name!=\"\", kube_cluster_name=$cluster,kube_namespace_name=~$namespace,kube_workload_name=~$workload, kube_workload_type=~$type})/ count(kube_pod_container_info{kube_cluster_name!=\"\", kube_cluster_name=$cluster,kube_namespace_name=~$namespace,kube_workload_name=~$workload, kube_workload_type=~$type})",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 37,
+        "type": "advancedNumber",
+        "name": "# of containers without CPU limits",
+        "description": "",
+        "nullValueDisplayText": "No limits configured for containers.",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "count(kube_pod_container_info{kube_cluster_name!=\"\", kube_cluster_name=$cluster,kube_namespace_name=~$namespace,kube_workload_name=~$workload, kube_workload_type=~$type} unless on(container_id) kube_pod_container_resource_limits{resource=\"cpu\",kube_cluster_name!=\"\", kube_cluster_name=$cluster,kube_namespace_name=~$namespace,kube_workload_name=~$workload, kube_workload_type=~$type})",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 38,
+        "type": "advancedNumber",
+        "name": "% of containers without CPU limits TEST",
+        "description": "",
+        "nullValueDisplayText": "No limits configured for containers.",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "count(kube_pod_container_info{kube_cluster_name!=\"\", kube_cluster_name=$cluster,kube_namespace_name=~$namespace,kube_workload_name=~$workload, kube_workload_type=~$type} unless on(container_id) kube_pod_container_resource_limits{resource=\"cpu\",kube_cluster_name!=\"\", kube_cluster_name=$cluster,kube_namespace_name=~$namespace,kube_workload_name=~$workload, kube_workload_type=~$type})/ count(kube_pod_container_info{kube_cluster_name!=\"\", kube_cluster_name=$cluster,kube_namespace_name=~$namespace,kube_workload_name=~$workload, kube_workload_type=~$type})",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 39,
+        "type": "advancedTimechart",
+        "name": "Unlimited Memory Used",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "topk(20,sum by (kube_cluster_name,kube_workload_name, kube_namespace_name,container_label_io_kubernetes_container_name)(rate(sysdig_container_memory_used_bytes{kube_cluster_name!=\"\",kube_cluster_name=$cluster, kube_namespace_name=~$namespace,kube_pod_name=~$pod,container_label_io_kubernetes_container_name=~$container,kube_workload_name=~$workload, kube_workload_type=~$type}[$__interval]) unless on (container_id)kube_pod_container_resource_limits{resource=\"memory\",kube_cluster_name=$cluster, kube_namespace_name=~$namespace,kube_pod_name=~$pod,container_label_io_kubernetes_container_name=~$container,kube_workload_name=~$workload, kube_workload_type=~$type}))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Container < Workload < Namespace < Cluster",
+              "timeSeriesDisplayNameTemplate": "{{container_label_io_kubernetes_container_name}} < {{kube_workload_name}} < {{kube_namespace_name}} < {{kube_cluster_name}}",
+              "type": "stackedArea"
+            },
+            "format": {
+              "unit": "byte",
+              "inputFormat": "B",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": null,
+          "showMin": null,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": "",
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "B",
+            "maxInputFormat": "B",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": "",
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": null
+      },
+      {
+        "id": 40,
+        "type": "advancedTimechart",
+        "name": "Unlimited CPU Used",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "topk(20,sum by(kube_cluster_name,kube_namespace_name,kube_workload_name,container_label_io_kubernetes_container_name)(rate(sysdig_container_cpu_cores_used{kube_cluster_name!=\"\",kube_cluster_name=$cluster, kube_namespace_name=~$namespace,kube_pod_name=~$pod,container_label_io_kubernetes_container_name=~$container,kube_workload_name=~$workload, kube_workload_type=~$type}[$__interval]) unless on (container_id) kube_pod_container_resource_limits{resource=\"cpu\",kube_cluster_name=$cluster, kube_namespace_name=~$namespace,kube_pod_name=~$pod,container_label_io_kubernetes_container_name=~$container,kube_workload_name=~$workload, kube_workload_type=~$type}))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Container < Workload < Namespace < Cluster",
+              "timeSeriesDisplayNameTemplate": "{{container_label_io_kubernetes_container_name}} < {{kube_workload_name}} < {{kube_namespace_name}} < {{kube_cluster_name}}",
+              "type": "stackedArea"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": null,
+          "showMin": null,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": "",
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": "",
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": null
+      },
+      {
+        "id": 41,
+        "type": "advancedNumber",
+        "name": "% of Unlimited CPU Used vs Total",
+        "description": "",
+        "nullValueDisplayText": "NOT DEFINED",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(rate(sysdig_container_cpu_cores_used{kube_cluster_name=$cluster, kube_namespace_name=~$namespace,kube_pod_name=~$pod,container_label_io_kubernetes_container_name=~$container,kube_workload_name=~$workload, kube_workload_type=~$type}[$__interval]) unless on (container_id) avg_over_time(kube_pod_container_resource_limits{resource=\"cpu\",kube_cluster_name=$cluster, kube_namespace_name=~$namespace,kube_pod_name=~$pod,container_label_io_kubernetes_container_name=~$container,kube_workload_name=~$workload, kube_workload_type=~$type}[$__interval])) / sum(rate(sysdig_container_cpu_cores_used{kube_cluster_name=$cluster, kube_namespace_name=~$namespace,kube_pod_name=~$pod,container_label_io_kubernetes_container_name=~$container,kube_workload_name=~$workload, kube_workload_type=~$type}[$__interval]))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [
+            {
+              "severity": "high",
+              "value": 75,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "medium",
+              "value": 50,
+              "inputFormat": "0-100",
+              "displayText": ""
+            }
+          ],
+          "base": {
+            "severity": "ok",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 42,
+        "type": "advancedNumber",
+        "name": "% of Unlimited Memory Used vs Total",
+        "description": "",
+        "nullValueDisplayText": "NOT DEFINED",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(rate(sysdig_container_memory_used_bytes{kube_cluster_name=$cluster, kube_namespace_name=~$namespace,kube_pod_name=~$pod,container_label_io_kubernetes_container_name=~$container,kube_workload_name=~$workload, kube_workload_type=~$type}[$__interval]) unless on (container_id) avg_over_time(kube_pod_container_resource_limits{resource=\"memory\",kube_cluster_name=$cluster, kube_namespace_name=~$namespace,kube_pod_name=~$pod,container_label_io_kubernetes_container_name=~$container,kube_workload_name=~$workload, kube_workload_type=~$type}[$__interval])) / sum(rate(sysdig_container_memory_used_bytes{kube_cluster_name=$cluster, kube_namespace_name=~$namespace,kube_pod_name=~$pod,container_label_io_kubernetes_container_name=~$container,kube_workload_name=~$workload, kube_workload_type=~$type}[$__interval]))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [
+            {
+              "severity": "high",
+              "value": 75,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "medium",
+              "value": 50,
+              "inputFormat": "0-100",
+              "displayText": ""
+            }
+          ],
+          "base": {
+            "severity": "ok",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 52,
+        "type": "advancedTimechart",
+        "name": "Unused Requested CPU by All Replicas of Container",
+        "description": "",
+        "nullValueDisplayText": "No requests configured for containers.",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "topk(20,sum by (kube_cluster_name,kube_namespace_name,container_id,kube_workload_name)(kube_pod_container_resource_requests{resource=\"cpu\",kube_cluster_name=$cluster, kube_namespace_name=~$namespace, kube_pod_name=~$pod,container=~$container,kube_workload_name=~$workload, kube_workload_type=~$type}) - sum by (kube_cluster_name,kube_namespace_name,container_id,kube_workload_name)(rate(sysdig_container_cpu_cores_used{kube_cluster_name=$cluster, kube_namespace_name=~$namespace, kube_pod_name=~$pod,container=~$container,kube_workload_name=~$workload, kube_workload_type=~$type}[$__interval])) >0)",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Container_Id < Pod < Workload < Namespace < Cluster",
+              "timeSeriesDisplayNameTemplate": "{{container_id}} < {{kube_workload_name}}  < {{kube_namespace_name}} < {{kube_cluster_name}}",
+              "type": "stackedArea"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": null,
+          "showMin": null,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": "",
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": "",
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": null
+      },
+      {
+        "id": 53,
+        "type": "advancedTimechart",
+        "name": "Unused Requested Memory by All Replicas of Container",
+        "description": "",
+        "nullValueDisplayText": "No requests configured for containers.",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "topk(20,sum by (kube_cluster_name, kube_namespace_name, kube_workload_name)((sum by (kube_cluster_name, kube_namespace_name,kube_pod_name, kube_workload_name)(kube_pod_container_resource_requests{kube_cluster_name=$cluster,kube_namespace_name=~$namespace,kube_pod_name=~$pod,kube_workload_name=~$workload, kube_workload_type=~$type, resource=\"memory\"}) - sum by (kube_cluster_name, kube_namespace_name,kube_pod_name, kube_workload_name)(rate(sysdig_container_memory_used_bytes{kube_cluster_name!=\"\",kube_cluster_name=$cluster,kube_namespace_name=~$namespace,kube_pod_name=~$pod,kube_workload_name=~$workload, kube_workload_type=~$type}[$__interval]))>0)))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Workload < Namespace < Cluster",
+              "timeSeriesDisplayNameTemplate": "{{kube_workload_name}}  < {{kube_namespace_name}} < {{kube_cluster_name}}",
+              "type": "stackedArea"
+            },
+            "format": {
+              "unit": "byte",
+              "inputFormat": "B",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": null,
+          "showMin": null,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": "",
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "B",
+            "maxInputFormat": "B",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": "",
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": null
+      },
+      {
+        "id": 55,
+        "type": "advancedNumber",
+        "name": "# Unlimited CPU used",
+        "description": "",
+        "nullValueDisplayText": "NOT DEFINED",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(sum by(kube_cluster_name,kube_namespace_name,kube_workload_name,container_label_io_kubernetes_container_name)(rate(sysdig_container_cpu_cores_used{kube_cluster_name=$cluster, kube_namespace_name=~$namespace,kube_pod_name=~$pod,container_label_io_kubernetes_container_name=~$container,kube_workload_name=~$workload, kube_workload_type=~$type}[$__interval]) unless on (container_id) avg_over_time(kube_pod_container_resource_limits{resource=\"cpu\",kube_cluster_name=$cluster, kube_namespace_name=~$namespace,kube_pod_name=~$pod,container_label_io_kubernetes_container_name=~$container,kube_workload_name=~$workload, kube_workload_type=~$type}[$__interval])))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 56,
+        "type": "advancedNumber",
+        "name": "# Unlimited memory used",
+        "description": "",
+        "nullValueDisplayText": "NOT DEFINED",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(sum by(kube_cluster_name,kube_namespace_name,kube_workload_name,container_label_io_kubernetes_container_name)(rate(sysdig_container_memory_used_bytes{kube_cluster_name=$cluster, kube_namespace_name=~$namespace,kube_pod_name=~$pod,container_label_io_kubernetes_container_name=~$container,kube_workload_name=~$workload, kube_workload_type=~$type}[$__interval]) unless on (container_id) avg_over_time(kube_pod_container_resource_limits{resource=\"memory\",kube_cluster_name=$cluster, kube_namespace_name=~$namespace,kube_pod_name=~$pod,container_label_io_kubernetes_container_name=~$container,kube_workload_name=~$workload, kube_workload_type=~$type}[$__interval])))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "byte",
+              "inputFormat": "B",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 57,
+        "type": "advancedNumber",
+        "name": "Cluster: % Limit Over-commit of Memory",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "abs(sum(sum by (kube_cluster_name)(kube_pod_container_resource_limits{resource=\"memory\",kube_cluster_name=$cluster, kube_workload_type=~$type}))) / sum(kube_node_status_capacity_memory_bytes{kube_cluster_name=$cluster})",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Node < Cluster",
+              "timeSeriesDisplayNameTemplate": "{{node}} < {{cluster}}",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [
+            {
+              "severity": "high",
+              "value": 150,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "low",
+              "value": 100,
+              "inputFormat": "0-100",
+              "displayText": ""
+            }
+          ],
+          "base": {
+            "severity": "ok",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 58,
+        "type": "advancedNumber",
+        "name": "Cluster: % Limit Over-commit of CPU Cores",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(sum by (kube_cluster_name)(kube_pod_container_resource_limits{resource=\"cpu\",kube_cluster_name=$cluster, kube_workload_type=~$type}) )/sum(kube_node_status_capacity_cpu_cores{kube_cluster_name=$cluster})",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [
+            {
+              "severity": "high",
+              "value": 150,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "low",
+              "value": 100,
+              "inputFormat": "0-100",
+              "displayText": ""
+            }
+          ],
+          "base": {
+            "severity": "ok",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 59,
+        "type": "advancedNumber",
+        "name": "Unused Requested CPU",
+        "description": "",
+        "nullValueDisplayText": "No requests configured for containers.",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(sum by (kube_workload_name,kube_workload_type,kube_cluster_name,kube_namespace_name,container_id)((avg_over_time(kube_pod_container_resource_requests{resource=\"cpu\",kube_cluster_name=$cluster, kube_namespace_name=~$namespace, kube_pod_name=~$pod,container=~$container,kube_workload_name=~$workload,kube_workload_type=~$type}[$__interval]))) - sum by (kube_workload_name,kube_workload_type,kube_cluster_name,kube_namespace_name,container_id)(rate(sysdig_container_cpu_cores_used{kube_cluster_name=$cluster, kube_namespace_name=~$namespace, kube_pod_name=~$pod,container_label_io_kubernetes_container_name=~$container,kube_workload_name=~$workload,kube_workload_type=~$type}[$__interval])) > 0)",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 60,
+        "type": "advancedNumber",
+        "name": "Unused Requested Memory",
+        "description": "",
+        "nullValueDisplayText": "No requests configured for containers.",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(sum by (kube_cluster_name, kube_namespace_name, kube_workload_name)((sum by (kube_cluster_name, kube_namespace_name,kube_pod_name, kube_workload_name)(avg_over_time(kube_pod_container_resource_requests{kube_cluster_name=$cluster,kube_namespace_name=~$namespace,kube_pod_name=~$pod,kube_workload_name=~$workload, kube_workload_type=~$type}[$__interval])) - sum by (kube_cluster_name, kube_namespace_name,kube_pod_name, kube_workload_name)(rate(sysdig_container_memory_used_bytes{kube_cluster_name!=\"\",kube_cluster_name=$cluster,kube_namespace_name=~$namespace,kube_pod_name=~$pod,kube_workload_name=~$workload,kube_workload_type=~$type}[$__interval])) > 0)))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "byte",
+              "inputFormat": "B",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 62,
+        "type": "advancedNumber",
+        "name": "Total nodes",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "count(kube_node_info{kube_cluster_name=$cluster})",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 64,
+        "type": "advancedNumber",
+        "name": "Total Memory GB",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(sum by (kube_cluster_name)(kube_node_status_allocatable{resource=\"memory\",kube_cluster_name=$cluster}))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "byte",
+              "inputFormat": "B",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 63,
+        "type": "advancedNumber",
+        "name": "Total CPU cores",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(kube_node_status_allocatable{resource=\"cpu\",kube_cluster_name=$cluster})",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 66,
+        "type": "advancedNumber",
+        "name": "Total CPU requests",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(sum by (kube_cluster_name)(kube_pod_container_resource_requests{resource=\"cpu\",kube_cluster_name=$cluster, kube_workload_type=~$type}))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 67,
+        "type": "advancedNumber",
+        "name": "Total Pods capacity",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(sum by (kube_cluster_name)(kube_node_status_allocatable{resource=\"pods\",kube_cluster_name=$cluster}))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 70,
+        "type": "advancedNumber",
+        "name": "Total Memory requests",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(sum by (kube_cluster_name)(kube_pod_container_resource_requests{resource=\"memory\",kube_cluster_name=$cluster, kube_workload_type=~$type}))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "byte",
+              "inputFormat": "B",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 71,
+        "type": "advancedNumber",
+        "name": "% CPU requested",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(max by(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name,kube_node_name)(kube_pod_container_resource_requests{resource=\"cpu\",unit=\"core\",kube_cluster_name=$cluster,kube_node_label_sysdig_agent=\"true\"} and on(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name) max by(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name)(kube_pod_container_status_running{kube_cluster_name=$cluster} == 1))) / sum(kube_node_status_allocatable{resource=\"cpu\",unit=\"core\",kube_cluster_name=$cluster,kube_node_label_sysdig_agent=\"true\"})",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [
+            {
+              "severity": "high",
+              "value": 80,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "low",
+              "value": 60,
+              "inputFormat": "0-100",
+              "displayText": ""
+            }
+          ],
+          "base": {
+            "severity": "ok",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 72,
+        "type": "advancedNumber",
+        "name": "% Memory requested",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(max by(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name,kube_node_name)(kube_pod_container_resource_requests{resource=\"memory\",unit=\"byte\",kube_cluster_name=$cluster,kube_node_label_sysdig_agent=\"true\"} and on(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name) max by(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name)(kube_pod_container_status_running{kube_cluster_name=$cluster} == 1))) / sum(kube_node_status_allocatable{resource=\"memory\",unit=\"byte\",kube_cluster_name=$cluster,kube_node_label_sysdig_agent=\"true\"})",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [
+            {
+              "severity": "high",
+              "value": 80,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "low",
+              "value": 60,
+              "inputFormat": "0-100",
+              "displayText": ""
+            }
+          ],
+          "base": {
+            "severity": "ok",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 73,
+        "type": "advancedGauge",
+        "name": "% Pods running",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(sum by (kube_cluster_name)(kube_pod_info{kube_cluster_name=$cluster, kube_workload_type=~$type})) / sum(sum by (kube_cluster_name)(kube_node_status_allocatable{resource=\"pods\",kube_cluster_name=$cluster})) * 100",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-100",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            },
+            "dataBoundaries": {
+              "min": {
+                "type": "static",
+                "value": null,
+                "inputFormat": "0-100"
+              },
+              "max": {
+                "type": "static",
+                "value": null,
+                "inputFormat": "0-100"
+              }
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [
+            {
+              "severity": "high",
+              "value": 80,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "low",
+              "value": 60,
+              "inputFormat": "0-100",
+              "displayText": ""
+            }
+          ],
+          "base": {
+            "severity": "ok",
+            "displayText": ""
+          },
+          "showMarkers": true,
+          "showLabels": false
+        }
+      },
+      {
+        "id": 74,
+        "type": "text",
+        "name": "New Panel (17)",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "markdownSource": "👉  If these values are too low or too high you can adjust the requests and limits of your pods in the **[Pod Rightsizing & Capacity Optimization](#/dashboard-template/view.kubernetes.cluster.rightsizing)** dashboard. ",
+        "transparentBackground": false,
+        "panelTitleVisible": false,
+        "textAutosized": false
+      },
+      {
+        "id": 75,
+        "type": "text",
+        "name": "New Panel (18)",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "markdownSource": "👉 These unused resources could be potentially reclaimed",
+        "transparentBackground": false,
+        "panelTitleVisible": false,
+        "textAutosized": false
+      },
+      {
+        "id": 76,
+        "type": "text",
+        "name": "New Panel (19)",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "markdownSource": "👉 You can use the **[Pod Rightsizing & Capacity Optimization](#/dashboard-template/view.kubernetes.cluster.rightsizing)** dashboard to help you define a proper value. ",
+        "transparentBackground": false,
+        "panelTitleVisible": false,
+        "textAutosized": false
+      },
+      {
+        "id": 78,
+        "type": "advancedGauge",
+        "name": "% CPU used per cluster",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(rate(sysdig_container_cpu_cores_used{kube_cluster_name=$cluster}[$__interval])) / sum(kube_node_status_allocatable{resource=\"cpu\",unit=\"core\",kube_cluster_name=$cluster,kube_node_label_sysdig_agent=\"true\"}) * 100",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-100",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            },
+            "dataBoundaries": {
+              "min": {
+                "type": "static",
+                "value": null,
+                "inputFormat": "0-100"
+              },
+              "max": {
+                "type": "static",
+                "value": null,
+                "inputFormat": "0-100"
+              }
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [
+            {
+              "severity": "high",
+              "value": 80,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "low",
+              "value": 60,
+              "inputFormat": "0-100",
+              "displayText": ""
+            }
+          ],
+          "base": {
+            "severity": "ok",
+            "displayText": ""
+          },
+          "showMarkers": true,
+          "showLabels": null
+        }
+      },
+      {
+        "id": 80,
+        "type": "advancedGauge",
+        "name": "% Memory Used per cluster",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(rate(sysdig_container_memory_used_bytes{kube_cluster_name=$cluster}[$__interval])) / sum(kube_node_status_allocatable{resource=\"memory\",unit=\"byte\",kube_cluster_name=$cluster,kube_node_label_sysdig_agent=\"true\"}) * 100",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Node < Cluster",
+              "timeSeriesDisplayNameTemplate": "{{kube_node_name}} < {{kube_cluster_name}}",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-100",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            },
+            "dataBoundaries": {
+              "min": {
+                "type": "static",
+                "value": null,
+                "inputFormat": "0-100"
+              },
+              "max": {
+                "type": "static",
+                "value": null,
+                "inputFormat": "0-100"
+              }
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [
+            {
+              "severity": "high",
+              "value": 80,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "low",
+              "value": 60,
+              "inputFormat": "0-100",
+              "displayText": ""
+            }
+          ],
+          "base": {
+            "severity": "ok",
+            "displayText": ""
+          },
+          "showMarkers": true,
+          "showLabels": false
+        }
+      },
+      {
+        "id": 81,
+        "type": "advancedGauge",
+        "name": "% Disk used",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "avg((sum by (host_mac)(max by(host_mac,device) (sysdig_fs_used_bytes{device!=\"overlay\",device!=\"overlayfs\"}))/sum by (host_mac)(max by(host_mac,device)(sysdig_fs_total_bytes{device!=\"overlay\",device!=\"overlayfs\"}))* on (host_mac) group_left(kube_node_name,kube_cluster_name) kube_node_sysdig_host{kube_cluster_name=$cluster}))  * 100",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-100",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            },
+            "dataBoundaries": {
+              "min": {
+                "type": "static",
+                "value": null,
+                "inputFormat": "0-100"
+              },
+              "max": {
+                "type": "static",
+                "value": null,
+                "inputFormat": "0-100"
+              }
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [
+            {
+              "severity": "high",
+              "value": 80,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "low",
+              "value": 60,
+              "inputFormat": "0-100",
+              "displayText": ""
+            }
+          ],
+          "base": {
+            "severity": "ok",
+            "displayText": ""
+          },
+          "showMarkers": true,
+          "showLabels": null
+        }
+      },
+      {
+        "id": 25,
+        "type": "advancedNumber",
+        "name": "Cluster: % CPU Used vs Requested",
+        "description": "Only containers with 'Resource Requests' are taken into account.",
+        "nullValueDisplayText": "No 'Resource Requests' configured for containers.",
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum by (kube_cluster_name)(sum by (kube_cluster_name,kube_namespace_name,container_id)(rate(sysdig_container_cpu_cores_used{kube_cluster_name=$cluster,kube_namespace_name=~$namespace, kube_workload_type=~$type}[$__interval])) and on (container_id)(avg_over_time(kube_pod_container_resource_requests{resource=\"cpu\",kube_cluster_name=$cluster,kube_namespace_name=~$namespace, kube_workload_type=~$type}[$__interval]) != 0)) / sum by (kube_cluster_name)(avg_over_time(kube_pod_container_resource_requests{resource=\"cpu\",kube_cluster_name=$cluster,kube_namespace_name=~$namespace, kube_workload_type=~$type}[$__interval]))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [
+            {
+              "severity": "high",
+              "value": 150,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "medium",
+              "value": 125,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "ok",
+              "value": 75,
+              "inputFormat": "0-100",
+              "displayText": ""
+            },
+            {
+              "severity": "medium",
+              "value": 50,
+              "inputFormat": "0-100",
+              "displayText": ""
+            }
+          ],
+          "base": {
+            "severity": "high",
+            "displayText": ""
+          }
+        }
+      },
+      {
+        "id": 82,
+        "type": "advancedTimechart",
+        "name": "Total CPU requests and % CPU requested",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(sum by (kube_cluster_name)(kube_pod_container_resource_requests{resource=\"cpu\",kube_cluster_name=$cluster, kube_workload_type=~$type}))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Total CPU Requests",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          },
+          {
+            "query": "sum(max by(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name,kube_node_name)(kube_pod_container_resource_requests{resource=\"cpu\",unit=\"core\",kube_cluster_name=$cluster,kube_node_label_sysdig_agent=\"true\"} and on(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name) max by(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name)(kube_pod_container_status_running{kube_cluster_name=$cluster} == 1))) / sum(kube_node_status_allocatable{resource=\"cpu\",unit=\"core\",kube_cluster_name=$cluster,kube_node_label_sysdig_agent=\"true\"})",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "% CPU Requested",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "connectDotted",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": null,
+          "showMin": null,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "0-100",
+            "maxInputFormat": "0-100",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": null
+      },
+      {
+        "id": 83,
+        "type": "advancedTimechart",
+        "name": "Total Memory requests and % Memory requested",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(sum by (kube_cluster_name)(kube_pod_container_resource_requests{resource=\"memory\",kube_cluster_name=$cluster, kube_workload_type=~$type}))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Total Memory requests",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "byte",
+              "inputFormat": "B",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          },
+          {
+            "query": "sum(max by(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name,kube_node_name)(kube_pod_container_resource_requests{resource=\"memory\",unit=\"byte\",kube_cluster_name=$cluster,kube_node_label_sysdig_agent=\"true\"} and on(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name) max by(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name)(kube_pod_container_status_running{kube_cluster_name=$cluster} == 1))) / sum(kube_node_status_allocatable{resource=\"memory\",unit=\"byte\",kube_cluster_name=$cluster,kube_node_label_sysdig_agent=\"true\"})",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "% Memory requested",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "connectDotted",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": null,
+          "showMin": null,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "B",
+            "maxInputFormat": "B",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "0-100",
+            "maxInputFormat": "0-100",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": null
+      },
+      {
+        "id": 84,
+        "type": "advancedTimechart",
+        "name": "Total pods and % Pods running",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(sum by (kube_cluster_name)(kube_pod_info{kube_cluster_name=$cluster, kube_workload_type=~$type}))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Total pods",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          },
+          {
+            "query": "sum(sum by (kube_cluster_name)(kube_pod_info{kube_cluster_name=$cluster, kube_workload_type=~$type})) / sum(sum by (kube_cluster_name)(kube_node_status_allocatable{resource=\"pods\",kube_cluster_name=$cluster}))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "% Pods running",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "%",
+              "inputFormat": "0-1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "connectDotted",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "legendConfiguration": {
+          "enabled": true,
+          "position": "bottom",
+          "layout": "table",
+          "showCurrent": true,
+          "showMax": null,
+          "showMin": null,
+          "width": null,
+          "height": null
+        },
+        "axesConfiguration": {
+          "bottom": {
+            "enabled": true
+          },
+          "left": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "1",
+            "maxInputFormat": "1",
+            "scale": "linear"
+          },
+          "right": {
+            "enabled": true,
+            "displayName": null,
+            "unit": "auto",
+            "displayFormat": "auto",
+            "decimals": null,
+            "minValue": 0,
+            "maxValue": null,
+            "minInputFormat": "0-100",
+            "maxInputFormat": "0-100",
+            "scale": "linear"
+          }
+        },
+        "numberThresholds": null
+      },
+      {
+        "id": 85,
+        "type": "section",
+        "name": "TOTAL CAPACITY",
+        "description": null,
+        "nullValueDisplayText": null,
+        "links": null,
+        "panelIds": [
+          64,
+          67,
+          73,
+          62,
+          63
+        ],
+        "basicQueries": [],
+        "advancedQueries": []
+      },
+      {
+        "id": 86,
+        "type": "section",
+        "name": "TOTAL REQUESTS",
+        "description": null,
+        "nullValueDisplayText": null,
+        "links": null,
+        "panelIds": [
+          82,
+          66,
+          83,
+          84,
+          69,
+          70,
+          71,
+          72
+        ],
+        "basicQueries": [],
+        "advancedQueries": []
+      },
+      {
+        "id": 87,
+        "type": "section",
+        "name": "CLUSTER RESOURCE USAGE",
+        "description": null,
+        "nullValueDisplayText": null,
+        "links": null,
+        "panelIds": [
+          80,
+          81,
+          78
+        ],
+        "basicQueries": [],
+        "advancedQueries": []
+      },
+      {
+        "id": 88,
+        "type": "section",
+        "name": "LIMIT OVERCOMMIT",
+        "description": null,
+        "nullValueDisplayText": null,
+        "links": null,
+        "panelIds": [
+          19,
+          20,
+          22,
+          23,
+          57,
+          58,
+          12
+        ],
+        "basicQueries": [],
+        "advancedQueries": []
+      },
+      {
+        "id": 89,
+        "type": "section",
+        "name": "USE OF ALLOCATED RESOURCES",
+        "description": null,
+        "nullValueDisplayText": null,
+        "links": null,
+        "panelIds": [
+          32,
+          74,
+          75,
+          52,
+          53,
+          25,
+          26,
+          59,
+          27,
+          60,
+          28,
+          29,
+          30,
+          31
+        ],
+        "basicQueries": [],
+        "advancedQueries": []
+      },
+      {
+        "id": 90,
+        "type": "section",
+        "name": "CONTAINERS WITHOUT LIMITS DEFINED",
+        "description": null,
+        "nullValueDisplayText": null,
+        "links": null,
+        "panelIds": [
+          35,
+          36,
+          37,
+          38,
+          39,
+          55,
+          40,
+          56,
+          41,
+          42,
+          76
+        ],
+        "basicQueries": [],
+        "advancedQueries": []
+      },
+      {
+        "id": 69,
+        "type": "advancedNumber",
+        "name": "Total pods running",
+        "description": "",
+        "nullValueDisplayText": null,
+        "links": null,
+        "advancedQueries": [
+          {
+            "query": "sum(sum by (kube_cluster_name)(kube_pod_info{kube_cluster_name=$cluster, kube_workload_type=~$type}))",
+            "enabled": true,
+            "displayInfo": {
+              "displayName": "Cluster",
+              "timeSeriesDisplayNameTemplate": "",
+              "type": "lines"
+            },
+            "format": {
+              "unit": "number",
+              "inputFormat": "1",
+              "displayFormat": "auto",
+              "decimals": null,
+              "yAxis": "auto",
+              "nullValueDisplayMode": "nullGap",
+              "minInterval": null
+            },
+            "compareTo": {
+              "enabled": false,
+              "delta": 1,
+              "timeFormat": "day"
+            }
+          }
+        ],
+        "numberThresholds": {
+          "useDefaults": null,
+          "values": [],
+          "base": {
+            "severity": "none",
+            "displayText": ""
+          }
+        }
+      }
+    ],
+    "scopeExpressionList": [
+      {
+        "operand": "kubernetes.cluster.name",
+        "operator": "equals",
+        "displayName": "cluster",
+        "value": [
+          "silver"
+        ],
+        "descriptor": {
+          "documentId": "kubernetes.cluster.name",
+          "id": "kubernetes.cluster.name",
+          "metricType": "tag",
+          "type": "string",
+          "scale": 0,
+          "name": "kubernetes.cluster.name",
+          "description": "kubernetes.cluster.name",
+          "namespaces": [
+            "kubernetes.cluster"
+          ],
+          "scopes": [],
+          "timeAggregations": [
+            "concat",
+            "distinct",
+            "count"
+          ],
+          "groupAggregations": [
+            "concat",
+            "distinct",
+            "count"
+          ],
+          "aggregationForGroup": "none",
+          "hidden": false,
+          "experimental": false,
+          "deferred": false,
+          "identity": false,
+          "canMonitor": false,
+          "canGroupBy": true,
+          "canFilter": true,
+          "generatedFrom": "com.draios.model.metrics.custom.CustomMetric$Tag",
+          "publicId": "kube_cluster_name",
+          "heuristic": false,
+          "documentType": "metric",
+          "documentTimestamp": 1789408903529,
+          "segment": false
+        },
+        "operandPublicId": "kube_cluster_name",
+        "variable": true,
+        "isVariable": true
+      },
+      {
+        "operand": "kubernetes.namespace.name",
+        "operator": "in",
+        "displayName": "namespace",
+        "value": [],
+        "descriptor": {
+          "documentId": "kubernetes.namespace.name",
+          "id": "kubernetes.namespace.name",
+          "metricType": "tag",
+          "type": "string",
+          "scale": 0,
+          "name": "kubernetes.namespace.name",
+          "description": "kubernetes.namespace.name",
+          "namespaces": [
+            "kubernetes.namespace"
+          ],
+          "scopes": [],
+          "timeAggregations": [
+            "concat",
+            "distinct",
+            "count"
+          ],
+          "groupAggregations": [
+            "concat",
+            "distinct",
+            "count"
+          ],
+          "aggregationForGroup": "none",
+          "hidden": false,
+          "experimental": false,
+          "deferred": false,
+          "identity": false,
+          "canMonitor": false,
+          "canGroupBy": true,
+          "canFilter": true,
+          "generatedFrom": "com.draios.model.metrics.custom.CustomMetric$Tag",
+          "publicId": "kube_namespace_name",
+          "heuristic": false,
+          "documentType": "metric",
+          "documentTimestamp": 1789408903530,
+          "segment": false
+        },
+        "operandPublicId": "kube_namespace_name",
+        "variable": true,
+        "isVariable": true
+      },
+      {
+        "operand": "kubernetes.workload.type",
+        "operator": "in",
+        "displayName": "type",
+        "value": [],
+        "descriptor": {
+          "documentId": "kubernetes.workload.type",
+          "id": "kubernetes.workload.type",
+          "metricType": "tag",
+          "type": "string",
+          "scale": 0,
+          "name": "kubernetes.workload.type",
+          "description": "kubernetes.workload.type",
+          "namespaces": [
+            "cloudProvider",
+            "host.container",
+            "ecs",
+            "host.fs",
+            "host.file",
+            "host",
+            "kubernetes",
+            "kubernetes.cluster",
+            "kubernetes.daemonSet",
+            "kubernetes.deployment",
+            "kubernetes.job",
+            "kubernetes.namespace",
+            "kubernetes.node",
+            "kubernetes.pod",
+            "kubernetes.replicaSet",
+            "kubernetes.service",
+            "kubernetes.statefulSet",
+            "kubernetes.resourcequota",
+            "kubernetes.hpa",
+            "link",
+            "mesos",
+            "host.net",
+            "host.process",
+            "prometheus",
+            "swarm",
+            "prombeacon"
+          ],
+          "scopes": [],
+          "timeAggregations": [
+            "concat",
+            "distinct",
+            "count"
+          ],
+          "groupAggregations": [
+            "concat",
+            "distinct",
+            "count"
+          ],
+          "aggregationForGroup": "none",
+          "hidden": false,
+          "experimental": false,
+          "deferred": false,
+          "identity": false,
+          "canMonitor": false,
+          "canGroupBy": true,
+          "canFilter": true,
+          "generatedFrom": "com.draios.model.metrics.custom.CustomMetric$Tag",
+          "publicId": "kube_workload_type",
+          "heuristic": false,
+          "documentType": "metric",
+          "documentTimestamp": 1789408903530,
+          "segment": false
+        },
+        "operandPublicId": "kube_workload_type",
+        "variable": true,
+        "isVariable": true
+      },
+      {
+        "operand": "kubernetes.workload.name",
+        "operator": "in",
+        "displayName": "workload",
+        "value": [],
+        "descriptor": {
+          "documentId": "kubernetes.workload.name",
+          "id": "kubernetes.workload.name",
+          "metricType": "tag",
+          "type": "string",
+          "scale": 0,
+          "name": "kubernetes.workload.name",
+          "description": "kubernetes.workload.name",
+          "namespaces": [
+            "cloudProvider",
+            "host.container",
+            "ecs",
+            "host.fs",
+            "host.file",
+            "host",
+            "kubernetes",
+            "kubernetes.cluster",
+            "kubernetes.daemonSet",
+            "kubernetes.deployment",
+            "kubernetes.job",
+            "kubernetes.namespace",
+            "kubernetes.node",
+            "kubernetes.pod",
+            "kubernetes.replicaSet",
+            "kubernetes.service",
+            "kubernetes.statefulSet",
+            "kubernetes.resourcequota",
+            "kubernetes.hpa",
+            "link",
+            "mesos",
+            "host.net",
+            "host.process",
+            "prometheus",
+            "swarm",
+            "prombeacon"
+          ],
+          "scopes": [],
+          "timeAggregations": [
+            "concat",
+            "distinct",
+            "count"
+          ],
+          "groupAggregations": [
+            "concat",
+            "distinct",
+            "count"
+          ],
+          "aggregationForGroup": "none",
+          "hidden": false,
+          "experimental": false,
+          "deferred": false,
+          "identity": false,
+          "canMonitor": false,
+          "canGroupBy": true,
+          "canFilter": true,
+          "generatedFrom": "com.draios.model.metrics.custom.CustomMetric$Tag",
+          "publicId": "kube_workload_name",
+          "heuristic": false,
+          "documentType": "metric",
+          "documentTimestamp": 1789408903530,
+          "segment": false
+        },
+        "operandPublicId": "kube_workload_name",
+        "variable": true,
+        "isVariable": true
+      },
+      {
+        "operand": "kubernetes.pod.name",
+        "operator": "in",
+        "displayName": "pod",
+        "value": [],
+        "descriptor": {
+          "documentId": "kubernetes.pod.name",
+          "id": "kubernetes.pod.name",
+          "metricType": "tag",
+          "type": "string",
+          "scale": 0,
+          "name": "kubernetes.pod.name",
+          "description": "kubernetes.pod.name",
+          "namespaces": [
+            "cloudProvider",
+            "host.container",
+            "ecs",
+            "host.fs",
+            "host.file",
+            "host",
+            "kubernetes",
+            "kubernetes.cluster",
+            "kubernetes.daemonSet",
+            "kubernetes.deployment",
+            "kubernetes.job",
+            "kubernetes.namespace",
+            "kubernetes.node",
+            "kubernetes.pod",
+            "kubernetes.replicaSet",
+            "kubernetes.service",
+            "kubernetes.statefulSet",
+            "kubernetes.resourcequota",
+            "kubernetes.hpa",
+            "link",
+            "mesos",
+            "host.net",
+            "host.process",
+            "prometheus",
+            "swarm",
+            "prombeacon"
+          ],
+          "scopes": [],
+          "timeAggregations": [
+            "concat",
+            "distinct",
+            "count"
+          ],
+          "groupAggregations": [
+            "concat",
+            "distinct",
+            "count"
+          ],
+          "aggregationForGroup": "none",
+          "hidden": false,
+          "experimental": false,
+          "deferred": false,
+          "identity": false,
+          "canMonitor": false,
+          "canGroupBy": true,
+          "canFilter": true,
+          "generatedFrom": "com.draios.model.metrics.custom.CustomMetric$Tag",
+          "publicId": "kube_pod_name",
+          "heuristic": false,
+          "documentType": "metric",
+          "documentTimestamp": 1789408903530,
+          "segment": false
+        },
+        "operandPublicId": "kube_pod_name",
+        "variable": true,
+        "isVariable": true
+      },
+      {
+        "operand": "container.label.io.kubernetes.container.name",
+        "operator": "in",
+        "displayName": "container",
+        "value": [],
+        "descriptor": {
+          "documentId": "container.label.io.kubernetes.container.name",
+          "id": "container.label.io.kubernetes.container.name",
+          "metricType": "tag",
+          "type": "string",
+          "scale": 0,
+          "name": "container.label.io.kubernetes.container.name",
+          "description": "container.label.io.kubernetes.container.name",
+          "namespaces": [
+            "cloudProvider",
+            "host.container",
+            "ecs",
+            "host.fs",
+            "host.file",
+            "host",
+            "kubernetes",
+            "kubernetes.cluster",
+            "kubernetes.daemonSet",
+            "kubernetes.deployment",
+            "kubernetes.job",
+            "kubernetes.namespace",
+            "kubernetes.node",
+            "kubernetes.pod",
+            "kubernetes.replicaSet",
+            "kubernetes.service",
+            "kubernetes.statefulSet",
+            "kubernetes.resourcequota",
+            "kubernetes.hpa",
+            "link",
+            "mesos",
+            "host.net",
+            "host.process",
+            "prometheus",
+            "swarm",
+            "prombeacon"
+          ],
+          "scopes": [],
+          "timeAggregations": [
+            "concat",
+            "distinct",
+            "count"
+          ],
+          "groupAggregations": [
+            "concat",
+            "distinct",
+            "count"
+          ],
+          "aggregationForGroup": "none",
+          "hidden": false,
+          "experimental": false,
+          "deferred": false,
+          "identity": false,
+          "canMonitor": false,
+          "canGroupBy": true,
+          "canFilter": true,
+          "generatedFrom": "com.draios.model.metrics.custom.CustomMetric$Tag",
+          "publicId": "container_label_io_kubernetes_container_name",
+          "heuristic": false,
+          "documentType": "metric",
+          "documentTimestamp": 1789408903530,
+          "segment": false
+        },
+        "operandPublicId": "container_label_io_kubernetes_container_name",
+        "variable": true,
+        "isVariable": true
+      }
+    ],
+    "eventDisplaySettings": {
+      "enabled": true,
+      "queryParams": {
+        "severities": [],
+        "alertStatuses": [],
+        "categories": [],
+        "filter": null,
+        "teamScope": false
+      }
+    },
+    "shared": false,
+    "public": false,
+    "version": 1,
+    "createdOn": 1789408902899,
+    "modifiedOn": 1789408902899,
+    "description": "Monitor the capacity of Kubernetes clusters ensuring they're correctly sized to support new applications when they're deployed.\nNote: You must at least upgrade to version 12.7.0 in order to enjoy the full functionality.",
+    "layout": [
+      {
+        "panelId": 85,
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      {
+        "panelId": 86,
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 1
+      },
+      {
+        "panelId": 87,
+        "x": 0,
+        "y": 12,
+        "w": 24,
+        "h": 1
+      },
+      {
+        "panelId": 88,
+        "x": 0,
+        "y": 17,
+        "w": 24,
+        "h": 1
+      },
+      {
+        "panelId": 89,
+        "x": 0,
+        "y": 27,
+        "w": 24,
+        "h": 1
+      },
+      {
+        "panelId": 90,
+        "x": 0,
+        "y": 45,
+        "w": 24,
+        "h": 1
+      },
+      {
+        "panelId": 12,
+        "x": 0,
+        "y": 18,
+        "w": 24,
+        "h": 1
+      },
+      {
+        "panelId": 19,
+        "x": 0,
+        "y": 23,
+        "w": 8,
+        "h": 2
+      },
+      {
+        "panelId": 20,
+        "x": 16,
+        "y": 19,
+        "w": 8,
+        "h": 8
+      },
+      {
+        "panelId": 22,
+        "x": 0,
+        "y": 25,
+        "w": 8,
+        "h": 2
+      },
+      {
+        "panelId": 23,
+        "x": 8,
+        "y": 19,
+        "w": 8,
+        "h": 8
+      },
+      {
+        "panelId": 26,
+        "x": 6,
+        "y": 29,
+        "w": 6,
+        "h": 2
+      },
+      {
+        "panelId": 27,
+        "x": 0,
+        "y": 31,
+        "w": 6,
+        "h": 5
+      },
+      {
+        "panelId": 28,
+        "x": 6,
+        "y": 31,
+        "w": 6,
+        "h": 5
+      },
+      {
+        "panelId": 29,
+        "x": 12,
+        "y": 29,
+        "w": 6,
+        "h": 2
+      },
+      {
+        "panelId": 30,
+        "x": 18,
+        "y": 29,
+        "w": 6,
+        "h": 2
+      },
+      {
+        "panelId": 31,
+        "x": 12,
+        "y": 31,
+        "w": 6,
+        "h": 5
+      },
+      {
+        "panelId": 32,
+        "x": 18,
+        "y": 31,
+        "w": 6,
+        "h": 5
+      },
+      {
+        "panelId": 35,
+        "x": 12,
+        "y": 47,
+        "w": 6,
+        "h": 2
+      },
+      {
+        "panelId": 36,
+        "x": 12,
+        "y": 49,
+        "w": 6,
+        "h": 2
+      },
+      {
+        "panelId": 37,
+        "x": 0,
+        "y": 47,
+        "w": 6,
+        "h": 2
+      },
+      {
+        "panelId": 38,
+        "x": 0,
+        "y": 49,
+        "w": 6,
+        "h": 2
+      },
+      {
+        "panelId": 39,
+        "x": 12,
+        "y": 51,
+        "w": 12,
+        "h": 6
+      },
+      {
+        "panelId": 40,
+        "x": 0,
+        "y": 51,
+        "w": 12,
+        "h": 6
+      },
+      {
+        "panelId": 41,
+        "x": 6,
+        "y": 49,
+        "w": 6,
+        "h": 2
+      },
+      {
+        "panelId": 42,
+        "x": 18,
+        "y": 49,
+        "w": 6,
+        "h": 2
+      },
+      {
+        "panelId": 52,
+        "x": 0,
+        "y": 39,
+        "w": 12,
+        "h": 6
+      },
+      {
+        "panelId": 53,
+        "x": 12,
+        "y": 39,
+        "w": 12,
+        "h": 6
+      },
+      {
+        "panelId": 55,
+        "x": 6,
+        "y": 47,
+        "w": 6,
+        "h": 2
+      },
+      {
+        "panelId": 56,
+        "x": 18,
+        "y": 47,
+        "w": 6,
+        "h": 2
+      },
+      {
+        "panelId": 57,
+        "x": 0,
+        "y": 21,
+        "w": 8,
+        "h": 2
+      },
+      {
+        "panelId": 58,
+        "x": 0,
+        "y": 19,
+        "w": 8,
+        "h": 2
+      },
+      {
+        "panelId": 59,
+        "x": 0,
+        "y": 37,
+        "w": 12,
+        "h": 2
+      },
+      {
+        "panelId": 60,
+        "x": 12,
+        "y": 37,
+        "w": 12,
+        "h": 2
+      },
+      {
+        "panelId": 62,
+        "x": 0,
+        "y": 1,
+        "w": 4,
+        "h": 3
+      },
+      {
+        "panelId": 64,
+        "x": 9,
+        "y": 1,
+        "w": 5,
+        "h": 3
+      },
+      {
+        "panelId": 63,
+        "x": 4,
+        "y": 1,
+        "w": 5,
+        "h": 3
+      },
+      {
+        "panelId": 66,
+        "x": 0,
+        "y": 5,
+        "w": 4,
+        "h": 2
+      },
+      {
+        "panelId": 67,
+        "x": 14,
+        "y": 1,
+        "w": 5,
+        "h": 3
+      },
+      {
+        "panelId": 69,
+        "x": 16,
+        "y": 5,
+        "w": 8,
+        "h": 2
+      },
+      {
+        "panelId": 70,
+        "x": 8,
+        "y": 5,
+        "w": 4,
+        "h": 2
+      },
+      {
+        "panelId": 71,
+        "x": 4,
+        "y": 5,
+        "w": 4,
+        "h": 2
+      },
+      {
+        "panelId": 72,
+        "x": 12,
+        "y": 5,
+        "w": 4,
+        "h": 2
+      },
+      {
+        "panelId": 73,
+        "x": 19,
+        "y": 1,
+        "w": 5,
+        "h": 3
+      },
+      {
+        "panelId": 74,
+        "x": 0,
+        "y": 28,
+        "w": 24,
+        "h": 1
+      },
+      {
+        "panelId": 75,
+        "x": 0,
+        "y": 36,
+        "w": 24,
+        "h": 1
+      },
+      {
+        "panelId": 76,
+        "x": 0,
+        "y": 46,
+        "w": 24,
+        "h": 1
+      },
+      {
+        "panelId": 78,
+        "x": 0,
+        "y": 13,
+        "w": 8,
+        "h": 4
+      },
+      {
+        "panelId": 80,
+        "x": 8,
+        "y": 13,
+        "w": 8,
+        "h": 4
+      },
+      {
+        "panelId": 81,
+        "x": 16,
+        "y": 13,
+        "w": 8,
+        "h": 4
+      },
+      {
+        "panelId": 25,
+        "x": 0,
+        "y": 29,
+        "w": 6,
+        "h": 2
+      },
+      {
+        "panelId": 82,
+        "x": 0,
+        "y": 7,
+        "w": 8,
+        "h": 5
+      },
+      {
+        "panelId": 83,
+        "x": 8,
+        "y": 7,
+        "w": 8,
+        "h": 5
+      },
+      {
+        "panelId": 84,
+        "x": 16,
+        "y": 7,
+        "w": 8,
+        "h": 5
+      }
+    ],
+    "sharingSettings": [],
+    "group": "Kubernetes",
+    "publicNotation": false,
+    "publicToken": "7033ba573b104ec0a350a1e7417be591",
+    "favorite": false,
+    "schema": 3,
+    "username": "Billy Li  (billy.li@gov.bc.ca)",
+    "permissions": [
+      "dashboards.edit",
+      "dashboards.sharing",
+      "dashboards.delete",
+      "dashboards.read",
+      "dashboards.transfer"
+    ]
+  }
+}

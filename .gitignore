@@ -19,3 +19,5 @@ scripts/vars.yaml
 *.DS_Store
 sysdig-operator/openshift/secret.yaml
 sysdig-operator/.env
+
+platform-services-dashboard-backup/restore-backups/*

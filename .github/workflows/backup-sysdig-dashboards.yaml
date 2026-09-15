@@ -1,0 +1,38 @@
+name: Backup Sysdig dashboards
+
+on:
+  schedule:
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      # act mounts the current working tree, including files not committed yet.
+      - name: Check out repository
+        if: env.DRY_RUN != 'true'
+        uses: actions/checkout@v7
+
+      - name: Download dashboards
+        env:
+          TOKEN: ${{ secrets.SYSDIG_METRICS_TOKEN }}
+        run: ./platform-services-dashboard-backup/backup_dashboards.sh
+
+      # Local act runs should test the download without creating or pushing a commit.
+      - name: Commit changes
+        if: env.DRY_RUN != 'true'
+        run: |
+          git add platform-services-dashboard-backup/dashboards
+          if git diff --cached --quiet; then
+            echo "No dashboard changes"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: back up Sysdig dashboards"
+          git push

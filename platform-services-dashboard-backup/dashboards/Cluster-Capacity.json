@@ -1840,7 +1840,7 @@
         "links": null,
         "advancedQueries": [
           {
-            "query": "sum(sum by (kube_cluster_name)(kube_pod_container_resource_requests{resource=\"cpu\",kube_cluster_name=$cluster, kube_workload_type=~$type})) / sum(sum by (kube_cluster_name)(kube_node_status_allocatable{resource=\"cpu\",kube_cluster_name=$cluster}))",
+            "query": "sum(max by(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name,kube_node_name)(kube_pod_container_resource_requests{resource=\"cpu\",unit=\"core\",kube_cluster_name=$cluster,kube_node_label_sysdig_agent=\"true\"} and on(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name) max by(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name)(kube_pod_container_status_running{kube_cluster_name=$cluster} == 1))) / sum(kube_node_status_allocatable{resource=\"cpu\",unit=\"core\",kube_cluster_name=$cluster,kube_node_label_sysdig_agent=\"true\"})",
             "enabled": true,
             "displayInfo": {
               "displayName": "Cluster",
@@ -1894,7 +1894,7 @@
         "links": null,
         "advancedQueries": [
           {
-            "query": "sum(sum by (kube_cluster_name)(kube_pod_container_resource_requests{resource=\"memory\",kube_cluster_name=$cluster, kube_workload_type=~$type})) / sum(sum by (kube_cluster_name)(kube_node_status_allocatable{resource=\"memory\",kube_cluster_name=$cluster}))",
+            "query": "sum(max by(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name,kube_node_name)(kube_pod_container_resource_requests{resource=\"memory\",unit=\"byte\",kube_cluster_name=$cluster,kube_node_label_sysdig_agent=\"true\"} and on(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name) max by(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name)(kube_pod_container_status_running{kube_cluster_name=$cluster} == 1))) / sum(kube_node_status_allocatable{resource=\"memory\",unit=\"byte\",kube_cluster_name=$cluster,kube_node_label_sysdig_agent=\"true\"})",
             "enabled": true,
             "displayInfo": {
               "displayName": "Cluster",
@@ -2052,7 +2052,7 @@
         "links": null,
         "advancedQueries": [
           {
-            "query": "avg(sum by (kube_cluster_name,kube_node_name)(rate(sysdig_container_cpu_cores_used{kube_cluster_name=$cluster, kube_workload_type=~$type}[$__interval])) / sum by (kube_cluster_name,kube_node_name)(kube_node_status_capacity_cpu_cores{kube_cluster_name=$cluster})) * 100",
+            "query": "sum(rate(sysdig_container_cpu_cores_used{kube_cluster_name=$cluster}[$__interval])) / sum(kube_node_status_allocatable{resource=\"cpu\",unit=\"core\",kube_cluster_name=$cluster,kube_node_label_sysdig_agent=\"true\"}) * 100",
             "enabled": true,
             "displayInfo": {
               "displayName": "Cluster",
@@ -2120,7 +2120,7 @@
         "links": null,
         "advancedQueries": [
           {
-            "query": "avg(sum by (kube_cluster_name,kube_node_name) (rate(sysdig_container_memory_used_bytes{kube_cluster_name=$cluster, kube_workload_type=~$type}[$__interval]))\n/ sum by (kube_cluster_name,kube_node_name) (kube_node_status_capacity_memory_bytes{kube_cluster_name=$cluster})) * 100",
+            "query": "sum(rate(sysdig_container_memory_used_bytes{kube_cluster_name=$cluster}[$__interval])) / sum(kube_node_status_allocatable{resource=\"memory\",unit=\"byte\",kube_cluster_name=$cluster,kube_node_label_sysdig_agent=\"true\"}) * 100",
             "enabled": true,
             "displayInfo": {
               "displayName": "Node < Cluster",
@@ -2345,7 +2345,7 @@
             }
           },
           {
-            "query": "sum(sum by (kube_cluster_name)(kube_pod_container_resource_requests{resource=\"cpu\",kube_cluster_name=$cluster, kube_workload_type=~$type})) / sum(sum by (kube_cluster_name)(kube_node_status_allocatable{resource=\"cpu\",kube_cluster_name=$cluster}))",
+            "query": "sum(max by(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name,kube_node_name)(kube_pod_container_resource_requests{resource=\"cpu\",unit=\"core\",kube_cluster_name=$cluster,kube_node_label_sysdig_agent=\"true\"} and on(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name) max by(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name)(kube_pod_container_status_running{kube_cluster_name=$cluster} == 1))) / sum(kube_node_status_allocatable{resource=\"cpu\",unit=\"core\",kube_cluster_name=$cluster,kube_node_label_sysdig_agent=\"true\"})",
             "enabled": true,
             "displayInfo": {
               "displayName": "% CPU Requested",
@@ -2441,7 +2441,7 @@
             }
           },
           {
-            "query": "sum(sum by (kube_cluster_name)(kube_pod_container_resource_requests{resource=\"memory\",kube_cluster_name=$cluster, kube_workload_type=~$type})) / sum(sum by (kube_cluster_name)(kube_node_status_allocatable{resource=\"memory\",kube_cluster_name=$cluster}))",
+            "query": "sum(max by(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name,kube_node_name)(kube_pod_container_resource_requests{resource=\"memory\",unit=\"byte\",kube_cluster_name=$cluster,kube_node_label_sysdig_agent=\"true\"} and on(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name) max by(kube_cluster_name,kube_namespace_name,kube_pod_name,kube_pod_container_name)(kube_pod_container_status_running{kube_cluster_name=$cluster} == 1))) / sum(kube_node_status_allocatable{resource=\"memory\",unit=\"byte\",kube_cluster_name=$cluster,kube_node_label_sysdig_agent=\"true\"})",
             "enabled": true,
             "displayInfo": {
               "displayName": "% Memory requested",

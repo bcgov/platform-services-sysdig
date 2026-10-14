@@ -1,4 +1,3 @@
-// internal/helper/users.go
 package helpers
 
 import (
@@ -7,14 +6,14 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
-// SysdigUser represents one user object from GET /platform/v1/users
+// SysdigUser represents one user object from GET /api/users.
 type SysdigUser struct {
 	ID    int64  `json:"id"`
-	Email string `json:"email"` // matches the "email" field in the JSON
-	// add FirstName, LastName, etc. if you need them
+	Email string `json:"username"`
 }
 
 // TeamUserRole is the final Name/Role/UserID struct
@@ -24,39 +23,14 @@ type TeamUserRole struct {
 	UserID int64
 }
 
-// UsersResponse wraps the list returned by Sysdig under "data"
+// UsersResponse wraps the list returned by Sysdig under "users".
 type UsersResponse struct {
-	Data []SysdigUser `json:"data"`
+	Users []SysdigUser `json:"users"`
 }
 
-// CreateUserRequest is the payload you POST when creating a new user
-type CreateUserRequest struct {
-	Email string `json:"email"`
-	Role  string `json:"role"`
-}
-
-// CreateUserResponse wraps the Sysdig response for POST /users
-type CreateUserResponse struct {
-	ID          int64   `json:"id"`
-	Email       string  `json:"email,omitempty"`
-	FirstName   *string `json:"firstName,omitempty"`
-	LastName    *string `json:"lastName,omitempty"`
-	IsAdmin     bool    `json:"isAdmin,omitempty"`
-	Activation  string  `json:"activationStatus,omitempty"`
-	DateCreated string  `json:"dateCreated,omitempty"`
-	LastUpdated *string `json:"lastUpdated,omitempty"`
-	Version     int     `json:"version,omitempty"`
-}
-
-// FetchUsers calls GET /platform/v1/users and applies an optional email filter.
-// If filterEmail is non-empty, the request uses the 'filter=email:<value>' query parameter.
+// FetchUsers includes users with pending invitations so retries do not re-invite them.
 func FetchUsers(apiEndpoint, token, filterEmail string) ([]SysdigUser, error) {
-	// Build base URL
-	endpoint := fmt.Sprintf("%s/platform/v1/users", apiEndpoint)
-	// Append filter parameter if provided
-	if filterEmail != "" {
-		endpoint = fmt.Sprintf("%s?filter=email:%s", endpoint, filterEmail)
-	}
+	endpoint := fmt.Sprintf("%s/api/users", apiEndpoint)
 
 	client := &http.Client{Timeout: 10 * time.Second}
 	req, err := http.NewRequest("GET", endpoint, nil)
@@ -77,19 +51,28 @@ func FetchUsers(apiEndpoint, token, filterEmail string) ([]SysdigUser, error) {
 		return nil, fmt.Errorf("FetchUsers: status %d, body %s", resp.StatusCode, string(body))
 	}
 
-	// Decode the wrapper and return the inner slice
 	var wrapper UsersResponse
 	if err := json.NewDecoder(resp.Body).Decode(&wrapper); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
-	return wrapper.Data, nil
+	if wrapper.Users == nil {
+		return nil, fmt.Errorf("FetchUsers response has no users list")
+	}
+	if filterEmail == "" {
+		return wrapper.Users, nil
+	}
+	for _, user := range wrapper.Users {
+		if strings.EqualFold(user.Email, filterEmail) {
+			return []SysdigUser{user}, nil
+		}
+	}
+	return nil, nil
 }
 
-// CreateUser creates a new user and returns its ID
-func CreateUser(apiEndpoint, token, email, role string) (int64, error) {
-	url := fmt.Sprintf("%s/platform/v1/users", apiEndpoint)
-	payload := CreateUserRequest{Email: email, Role: role}
-	body, _ := json.Marshal(payload)
+// InviteUser sends a new-user invitation and returns the user ID for team membership.
+func InviteUser(apiEndpoint, token, email string) (int64, error) {
+	url := fmt.Sprintf("%s/api/users", apiEndpoint)
+	body, _ := json.Marshal(map[string]string{"username": email})
 
 	client := &http.Client{Timeout: 10 * time.Second}
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
@@ -110,17 +93,21 @@ func CreateUser(apiEndpoint, token, email, role string) (int64, error) {
 		return 0, fmt.Errorf("reading response body: %w", err)
 	}
 
-	if resp.StatusCode != http.StatusCreated {
-		return 0, fmt.Errorf("CreateUser: status %d, body %s",
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("InviteUser: status %d, body %s",
 			resp.StatusCode, string(bodyInfo))
 	}
 
-	var cr CreateUserResponse
-	if err := json.Unmarshal(bodyInfo, &cr); err != nil {
-		return 0, fmt.Errorf("parsing CreateUser response JSON: %w", err)
+	var cr struct {
+		User struct {
+			ID int64 `json:"id"`
+		} `json:"user"`
 	}
-	fmt.Printf("I want to check what is comeback payload: \n %+v\n", cr)
-
-	//Return the new user ID:
-	return cr.ID, nil
+	if err := json.Unmarshal(bodyInfo, &cr); err != nil {
+		return 0, fmt.Errorf("parsing InviteUser response JSON: %w", err)
+	}
+	if cr.User.ID == 0 {
+		return 0, fmt.Errorf("InviteUser response has no user ID")
+	}
+	return cr.User.ID, nil
 }

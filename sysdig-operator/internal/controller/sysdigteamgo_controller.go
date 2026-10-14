@@ -55,6 +55,7 @@ type SysdigTeamGoReconciler struct {
 func (r *SysdigTeamGoReconciler) syncOneTeam(
 	apiEndpoint, token, teamName, product, description string,
 	namespaces []string,
+	zoneID int64,
 ) (int64, error) {
 	// Fetch existing teams by name filter
 	filtered, err := helpers.FetchTeams(apiEndpoint, token, teamName)
@@ -81,34 +82,15 @@ func (r *SysdigTeamGoReconciler) syncOneTeam(
 			description,
 			product,
 			namespaces,
+			zoneID,
 		)
 		if err != nil {
 			return 0, fmt.Errorf("create %s team: %w", product, err)
 		}
 
 		r.Log.Info("Created Sysdig team", "product", product, "name", teamName, "id", id)
-
-		// After creating a team, create the associated dashboard.
-		if product == "monitor" && len(namespaces) > 0 {
-			dashboardApiEndpoint := os.Getenv("SYSDIG_DASHBOARD_API_ENDPOINT")
-			if dashboardApiEndpoint == "" {
-				dashboardApiEndpoint = "https://app.sysdigcloud.com" // Default if not set
-			}
-
-			r.Log.Info("Attempting to create default dashboard for new monitor team", "teamID", id)
-			// We use the first namespace in the list for the dashboard scope.
-			if err := helpers.CreateDashboard(dashboardApiEndpoint, token, id, namespaces[0]); err != nil {
-				// Log the dashboard creation error as a warning but don't fail the reconciliation,
-				// as the team itself was created successfully.
-				r.Log.Error(err, "Warning: failed to create default dashboard for team", "teamID", id)
-			} else {
-				r.Log.Info("Successfully created default dashboard for team", "teamID", id)
-			}
-		}
-
 		return id, nil
 	} else {
-		// we don't update team. as we use membership api to manage access.
 		r.Log.Info("Sysdig team exists, skipping create", "product", product, "name", exists.Name, "id", exists.ID)
 		return exists.ID, nil
 	}
@@ -158,30 +140,14 @@ func (r *SysdigTeamGoReconciler) syncMemberships(
 			}
 
 		case currentRole != d.Role:
-			// role changed — delete then re‐create (Role check)
-			if err := helpers.DeleteMembership(apiEndpoint, token, teamID, d.UserID); err != nil {
-				r.Log.Error(err, "DeleteMembership failed",
-					"team", product, "teamID", teamID,
-					"userID", d.UserID, "oldRole", currentRole)
-			} else {
-				r.Log.Info("DeleteMembership succeeded",
-					"team", product, "teamID", teamID,
-					"userID", d.UserID, "oldRole", currentRole)
-			}
-
-			// now create with the new role
 			resp, err := helpers.SaveMembership(apiEndpoint, token,
 				teamID, d.UserID, d.Role)
 			if err != nil {
-				r.Log.Error(err, "SaveMembership failed (after delete)",
-					"team", product, "teamID", teamID,
-					"userID", d.UserID, "newRole", d.Role)
-			} else {
-				r.Log.Info("SaveMembership succeeded (after delete)",
-					"team", product, "teamID", teamID,
-					"userID", d.UserID, "role", d.Role,
-					"response", string(resp))
+				return fmt.Errorf("update %s team %d user %d role: %w", product, teamID, d.UserID, err)
 			}
+			r.Log.Info("Membership role updated", "team", product, "teamID", teamID,
+				"userID", d.UserID, "oldRole", currentRole, "role", d.Role,
+				"response", string(resp))
 
 		default:
 			// found and role matches — nothing to do
@@ -215,9 +181,9 @@ func (r *SysdigTeamGoReconciler) syncMemberships(
 	return nil
 }
 
-// +kubebuilder:rbac:groups=monitoring.devops.gov.bc.ca,resources=sysdig-team-go,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=monitoring.devops.gov.bc.ca,resources=sysdig-team-go/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=monitoring.devops.gov.bc.ca,resources=sysdig-team-go/finalizers,verbs=update
+// +kubebuilder:rbac:groups=ops.gov.bc.ca,resources=sysdig-teams,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=ops.gov.bc.ca,resources=sysdig-teams/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=ops.gov.bc.ca,resources=sysdig-teams/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -249,17 +215,11 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	// Handle deletion: Check if the DeletionTimestamp is set
 	if !sysdigTeam.ObjectMeta.DeletionTimestamp.IsZero() {
-
-		// Remove finalizer(s)
-		controllerutil.RemoveFinalizer(&sysdigTeam, sysdigTeamFinalizerOld)
-		controllerutil.RemoveFinalizer(&sysdigTeam, sysdigTeamFinalizer)
-		r.Update(ctx, &sysdigTeam)
-
 		// Delete Monitor team
 		if sysdigTeam.Status.MonitorTeamID != 0 {
 			logger.Info("Deleting Monitor team", "ID", sysdigTeam.Status.MonitorTeamID)
 			if err := helpers.DeleteTeam(apiEndpoint, token, sysdigTeam.Status.MonitorTeamID); err != nil {
-				logger.Error(err, "Failed to delete Monitor team", "ID", sysdigTeam.Status.MonitorTeamID)
+				return ctrl.Result{}, fmt.Errorf("delete Monitor team: %w", err)
 			}
 		}
 
@@ -267,10 +227,18 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if sysdigTeam.Status.SecureTeamID != 0 {
 			logger.Info("Deleting Secure team", "ID", sysdigTeam.Status.SecureTeamID)
 			if err := helpers.DeleteTeam(apiEndpoint, token, sysdigTeam.Status.SecureTeamID); err != nil {
-				logger.Error(err, "Failed to delete Secure team", "ID", sysdigTeam.Status.SecureTeamID)
+				return ctrl.Result{}, fmt.Errorf("delete Secure team: %w", err)
 			}
 		}
 
+		// Keep the finalizer until both teams are gone; retries are safe after a partial delete.
+		removed := controllerutil.RemoveFinalizer(&sysdigTeam, sysdigTeamFinalizer)
+		removedOld := controllerutil.RemoveFinalizer(&sysdigTeam, sysdigTeamFinalizerOld)
+		if removed || removedOld {
+			if err := r.Update(ctx, &sysdigTeam); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
 		return ctrl.Result{}, nil // Stop reconciliation as the object is being deleted
 	}
 
@@ -331,6 +299,11 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	// Step 0: set fact (Moved after initial checks and finalizer logic)
 	facts := helpers.SetTeamFacts(req.Namespace)
+	zoneID, err := helpers.EnsureZone(ctx, sysdigAppEndpoint(), token, facts.NSPrefix)
+	if err != nil {
+		return ctrl.Result{}, fmt.Errorf("ensure secure zone: %w", err)
+	}
+	logger.Info("Secure zone available", "zoneID", zoneID)
 
 	// 3) Build teamUserList from the CR's spec
 	teamUserList := make([]helpers.TeamUserRole, 0, len(sysdigTeam.Spec.Team.Users))
@@ -345,19 +318,24 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	var teamUsersAndRoles []helpers.TeamUserRole
 	for _, tu := range teamUserList {
 		// Try to fetch by email filter
-		matched, err := helpers.FetchUsers(apiEndpoint, token, tu.Name)
+		matched, err := helpers.FetchUsers(sysdigAppEndpoint(), token, tu.Name)
 		if err != nil {
 			return ctrl.Result{}, fmt.Errorf("fetch user %q: %w", tu.Name, err)
 		}
 
 		var userID int64
-		if len(matched) > 0 {
+		for _, user := range matched {
+			if strings.EqualFold(user.Email, tu.Name) {
+				userID = user.ID
+				break
+			}
+		}
+		if userID != 0 {
 			// user already exists
-			userID = matched[0].ID
 			fmt.Printf("DEBUG: user %q exists as ID %d\n", tu.Name, userID)
 		} else {
 			// create new user
-			userID, err = helpers.CreateUser(apiEndpoint, token, tu.Name, tu.Role)
+			userID, err = helpers.InviteUser(sysdigAppEndpoint(), token, tu.Name)
 			if err != nil {
 				return ctrl.Result{}, fmt.Errorf("create user %q: %w", tu.Name, err)
 			}
@@ -380,6 +358,7 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		"monitor",
 		sysdigTeam.Spec.Team.Description,
 		facts.Namespaces,
+		0,
 	)
 	if err != nil {
 		logger.Error(err, "Failed to sync Monitor team")
@@ -413,6 +392,7 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		"secure",
 		sysdigTeam.Spec.Team.Description,
 		facts.Namespaces,
+		zoneID,
 	)
 	if err != nil {
 		logger.Error(err, "Failed to sync Secure team")
@@ -500,6 +480,13 @@ func containsString(slice []string, s string) bool {
 		}
 	}
 	return false
+}
+
+func sysdigAppEndpoint() string {
+	if endpoint := os.Getenv("SYSDIG_APP_ENDPOINT"); endpoint != "" {
+		return endpoint
+	}
+	return "https://app.sysdigcloud.com"
 }
 
 // removeString removes a specific string from a slice of strings.

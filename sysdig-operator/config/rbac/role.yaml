@@ -5,9 +5,9 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - ops.gov.bc.ca
+  - monitoring.devops.gov.bc.ca
   resources:
-  - sysdig-teams
+  - sysdig-team-go
   verbs:
   - create
   - delete
@@ -17,15 +17,15 @@ rules:
   - update
   - watch
 - apiGroups:
-  - ops.gov.bc.ca
+  - monitoring.devops.gov.bc.ca
   resources:
-  - sysdig-teams/finalizers
+  - sysdig-team-go/finalizers
   verbs:
   - update
 - apiGroups:
-  - ops.gov.bc.ca
+  - monitoring.devops.gov.bc.ca
   resources:
-  - sysdig-teams/status
+  - sysdig-team-go/status
   verbs:
   - get
   - patch

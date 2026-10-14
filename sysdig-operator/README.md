@@ -28,17 +28,17 @@ go vet ./...
 go build -o bin/manager cmd/main.go
 ```
 
-### Run the operator locally with `billy-test.yaml`
+### Run the operator locally with `my-test.yaml`
 
-Copy `sysdigteam-sample.yml` to `billy-test.yaml`, then set the test namespace, resource name, users, and roles. The operator may remove team members who are not listed.
+Copy `sysdigteam-sample.yml` to `my-test.yaml`, then set the test namespace, resource name, users, and roles. The operator may remove team members who are not listed.
 
 1. In [KLAB Argo CD](https://gitops.apps.klab.devops.gov.bc.ca), turn off auto-sync for `cluster-apps` and `sysdig-teams-operator`. Record the current replica count, then scale the [sysdig-operator-go deployment](https://console.apps.klab.devops.gov.bc.ca/k8s/ns/openshift-bcgov-sysdig-agent/deployments/sysdig-operator-go) to **0**. Wait for **0/0** ready.
-2. Check that you are using the right cluster and review the resources in the test namespace:
+2. Confirm your context uses `api.klab.devops.gov.bc.ca` (not `api.silver.devops.gov.bc.ca`), then review the resources in the test namespace:
 
    ```sh
    oc config current-context
    oc get sysdig-team -n c9ba43-tools
-   oc diff -f billy-test.yaml
+   oc diff -f my-test.yaml
    ```
 
 3. In this directory, start the operator:
@@ -51,7 +51,7 @@ Copy `sysdigteam-sample.yml` to `billy-test.yaml`, then set the test namespace, 
 4. In another terminal, apply the test resource:
 
    ```sh
-   oc apply -f billy-test.yaml
+   oc apply -f my-test.yaml
    oc get sysdig-team c9ba43-sysdigteam -n c9ba43-tools -o yaml
    ```
 

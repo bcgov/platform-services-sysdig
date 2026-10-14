@@ -53,9 +53,10 @@ type SysdigTeamGoReconciler struct {
 }
 
 func (r *SysdigTeamGoReconciler) syncOneTeam(
+	ctx context.Context,
 	apiEndpoint, token, teamName, product, description string,
 	namespaces []string,
-	zoneID int64,
+	projectID string,
 ) (int64, error) {
 	// Fetch existing teams by name filter
 	filtered, err := helpers.FetchTeams(apiEndpoint, token, teamName)
@@ -75,6 +76,14 @@ func (r *SysdigTeamGoReconciler) syncOneTeam(
 
 	// Create if missing
 	if exists == nil {
+		var zoneID int64
+		if product == "secure" {
+			zoneID, err = helpers.EnsureZone(ctx, sysdigAppEndpoint(), token, projectID)
+			if err != nil {
+				return 0, fmt.Errorf("ensure secure zone: %w", err)
+			}
+			r.Log.Info("Secure zone available", "zoneID", zoneID)
+		}
 		id, err := helpers.CreateTeam(
 			apiEndpoint,
 			token,
@@ -181,9 +190,9 @@ func (r *SysdigTeamGoReconciler) syncMemberships(
 	return nil
 }
 
-// +kubebuilder:rbac:groups=ops.gov.bc.ca,resources=sysdig-teams,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=ops.gov.bc.ca,resources=sysdig-teams/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=ops.gov.bc.ca,resources=sysdig-teams/finalizers,verbs=update
+// +kubebuilder:rbac:groups=monitoring.devops.gov.bc.ca,resources=sysdig-team-go,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=monitoring.devops.gov.bc.ca,resources=sysdig-team-go/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=monitoring.devops.gov.bc.ca,resources=sysdig-team-go/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -299,11 +308,6 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	// Step 0: set fact (Moved after initial checks and finalizer logic)
 	facts := helpers.SetTeamFacts(req.Namespace)
-	zoneID, err := helpers.EnsureZone(ctx, sysdigAppEndpoint(), token, facts.NSPrefix)
-	if err != nil {
-		return ctrl.Result{}, fmt.Errorf("ensure secure zone: %w", err)
-	}
-	logger.Info("Secure zone available", "zoneID", zoneID)
 
 	// 3) Build teamUserList from the CR's spec
 	teamUserList := make([]helpers.TeamUserRole, 0, len(sysdigTeam.Spec.Team.Users))
@@ -352,13 +356,14 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	// 5)----- MONITOR TEAM -----
 	monitorTeamID, err := r.syncOneTeam(
+		ctx,
 		apiEndpoint,
 		token,
 		facts.ContainerTeamName,
 		"monitor",
 		sysdigTeam.Spec.Team.Description,
 		facts.Namespaces,
-		0,
+		"",
 	)
 	if err != nil {
 		logger.Error(err, "Failed to sync Monitor team")
@@ -386,13 +391,14 @@ func (r *SysdigTeamGoReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	// 6) ----- Secure TEAM -----
 	secureTeamID, err := r.syncOneTeam(
+		ctx,
 		apiEndpoint,
 		token,
 		facts.ContainerSecureTeamName,
 		"secure",
 		sysdigTeam.Spec.Team.Description,
 		facts.Namespaces,
-		zoneID,
+		facts.NSPrefix,
 	)
 	if err != nil {
 		logger.Error(err, "Failed to sync Secure team")

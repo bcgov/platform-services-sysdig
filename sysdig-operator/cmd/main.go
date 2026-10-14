@@ -124,6 +124,7 @@ func main() {
 		// https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.19.0/pkg/metrics/filters#WithAuthenticationAndAuthorization
 		metricsServerOptions.FilterProvider = filters.WithAuthenticationAndAuthorization
 	}
+	// use this to just listen one namespace for local testing, otherwise leave empty to listen all namespaces
 	cacheOptions := cache.Options{}
 	if watchNamespace != "" {
 		cacheOptions.DefaultNamespaces = map[string]cache.Config{watchNamespace: {}}

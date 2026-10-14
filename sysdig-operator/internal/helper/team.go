@@ -14,7 +14,6 @@ import (
 type SysdigTeam struct {
 	ID   int64  `json:"id"`
 	Name string `json:"name"`
-	// Version int    `json:"version"`
 }
 
 // Scope defines a resource filtering scope for a team.
@@ -23,16 +22,9 @@ type Scope struct {
 	Expression string `json:"expression"`
 }
 
-// UISettings holds UI-related settings including entry point and theme.
+// UISettings holds the team theme.
 type UISettings struct {
-	EntryPoint *EntryPoint `json:"entryPoint,omitempty"`
-	Theme      string      `json:"theme"`
-}
-
-// EntryPoint configures the default module and selection in the UI.
-type EntryPoint struct {
-	Module    string  `json:"module"`
-	Selection *string `json:"selection,omitempty"`
+	Theme string `json:"theme"`
 }
 
 // CreateTeamRequest is the payload for creating a team
@@ -45,23 +37,10 @@ type CreateTeamRequest struct {
 	CanUseCustomEvents        bool            `json:"canUseCustomEvents,omitempty"`
 	CanUseSysdigCapture       bool            `json:"canUseSysdigCapture,omitempty"`
 	Scopes                    []Scope         `json:"scopes,omitempty"`
+	ZoneIDs                   []int64         `json:"zoneIds,omitempty"`
+	IsAllZones                *bool           `json:"isAllZones,omitempty"`
 	UISettings                UISettings      `json:"uiSettings,omitempty"`
 	AdditionalTeamPermissions map[string]bool `json:"additionalTeamPermissions,omitempty"`
-}
-
-// UpdateTeamRequest is the payload for updating a team
-type UpdateTeamRequest struct {
-	CanUseAwsMetrics    bool   `json:"canUseAwsMetrics"`
-	CanUseCustomEvents  bool   `json:"canUseCustomEvents"`
-	CanUseSysdigCapture bool   `json:"canUseSysdigCapture"`
-	Description         string `json:"description"`
-	Name                string `json:"name"`
-	ID                  int64  `json:"id"`
-	Version             int    `json:"version"`
-	Show                string `json:"show"`
-	Theme               string `json:"theme"`
-	Filter              string `json:"filter"`
-	// UserRoles           []TeamUserRole `json:"userRoles"`
 }
 
 // buildFilterExpression constructs a filter expression from a list of namespaces.
@@ -124,21 +103,21 @@ func FetchTeams(apiEndpoint, token, filterName string) ([]SysdigTeam, error) {
 }
 
 // CreateTeam creates a new team in Sysdig without user assignments.
-// It populates Scopes based on provided namespace scopes.
-func CreateTeam(apiEndpoint, token, name, description, product string, namespaces []string) (int64, error) {
+// Secure selects the project zone; Sysdig still requires a HOST_CONTAINER scope.
+func CreateTeam(apiEndpoint, token, name, description, product string, namespaces []string, zoneID int64) (int64, error) {
 	url := fmt.Sprintf("%s/platform/v1/teams", apiEndpoint)
-	scopes := []Scope{
-		{
-			Type:       "HOST_CONTAINER",
-			Expression: "container", // grants container access
-		},
-		{
-			Type:       "AGENT", //bit different from API documentation: https://app.sysdigcloud.com/apidocs/monitor?_product=SDC#tag/Teams/operation/createTeamV1
-			Expression: BuildFilterExpression(namespaces),
-		}}
-	ui := UISettings{Theme: "#73A1F7"}
+	scopes := []Scope{{Type: "HOST_CONTAINER", Expression: "container"}}
+	var zoneIDs []int64
+	var isAllZones *bool
 	if product == "monitor" {
-		ui.EntryPoint = &EntryPoint{Module: "Dashboards"}
+		scopes = append(scopes, Scope{Type: "AGENT", Expression: BuildFilterExpression(namespaces)})
+	} else if product == "secure" {
+		if zoneID <= 0 {
+			return 0, fmt.Errorf("secure team %q requires a zone ID", name)
+		}
+		zoneIDs = []int64{zoneID}
+		allZones := false
+		isAllZones = &allZones
 	}
 
 	// TODO: {"type":"unprocessable_entity","message":"Teamless custom events not available in Secure","details":[]}
@@ -171,7 +150,9 @@ func CreateTeam(apiEndpoint, token, name, description, product string, namespace
 		CanUseCustomEvents:        true,
 		CanUseSysdigCapture:       false,
 		Scopes:                    scopes,
-		UISettings:                ui,
+		ZoneIDs:                   zoneIDs,
+		IsAllZones:                isAllZones,
+		UISettings:                UISettings{Theme: "#EE635E"},
 		AdditionalTeamPermissions: perms,
 	}
 	return postTeam(url, token, reqBody)
@@ -195,17 +176,19 @@ func postTeam(url, token string, body interface{}) (int64, error) {
 	defer resp.Body.Close()
 
 	bodyInfo, _ := io.ReadAll(resp.Body)
-	fmt.Printf("DEBUG: create team response body:\n%s\n", string(bodyInfo))
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		return 0, fmt.Errorf("CreateTeam: status %d, body %s", resp.StatusCode, string(bodyInfo))
+	}
 
 	var created SysdigTeam
 	if err := json.Unmarshal(bodyInfo, &created); err != nil {
-		return 0, fmt.Errorf("parsing CreateUser response JSON: %w", err)
+		return 0, fmt.Errorf("parsing CreateTeam response JSON: %w", err)
+	}
+	if created.ID == 0 {
+		return 0, fmt.Errorf("CreateTeam response has no team ID")
 	}
 
-	// fmt.Printf("DEBUG: create team, payload is 11111111: \n %+v\n", created)
-
 	fmt.Printf("Successfully created a team with ID %d and name %s", created.ID, created.Name)
-	// return created.ID, nil
 	return created.ID, nil
 }
 
@@ -226,7 +209,7 @@ func DeleteTeam(apiEndpoint, token string, teamID int64) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK { // Sysdig API might return 200 or 204 for successful deletion
+	if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNotFound {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("DeleteTeam request failed: status %d, body %s", resp.StatusCode, string(bodyBytes))
 	}
@@ -234,51 +217,3 @@ func DeleteTeam(apiEndpoint, token string, teamID int64) error {
 	fmt.Printf("Successfully deleted team with ID %d\n", teamID)
 	return nil
 }
-
-// we don't update team. as we use membership api to manage access. But just leave it there in case we want to add more function in the future
-// func UpdateTeam(apiEndpoint, token, name, description string, id int64, version int, namespaces []string) (int64, error) {
-// 	url := fmt.Sprintf("%s/platform/v1/teams/%d", apiEndpoint, id)
-// 	reqBody := UpdateTeamRequest{
-// 		CanUseAwsMetrics:    false,
-// 		CanUseCustomEvents:  true,
-// 		CanUseSysdigCapture: false,
-// 		Description:         description,
-// 		Name:                name,
-// 		ID:                  id,
-// 		Version:             version,
-// 		Show:                "container",
-// 		Theme:               "#73A1F7",
-// 		Filter:              BuildFilterExpression(namespaces),
-// 		// UserRoles:           users,
-// 	}
-// 	return putTeam(url, token, reqBody)
-// }
-
-// shared function to PUT a team
-// func putTeam(url, token string, body interface{}) (int64, error) {
-// 	payload, _ := json.Marshal(body)
-// 	client := &http.Client{Timeout: 10 * time.Second}
-// 	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(payload))
-// 	if err != nil {
-// 		return 0, err
-// 	}
-// 	req.Header.Set("Authorization", "Bearer "+token)
-// 	req.Header.Set("Content-Type", "application/json")
-
-// 	resp, err := client.Do(req)
-// 	if err != nil {
-// 		return 0, err
-// 	}
-// 	defer resp.Body.Close()
-
-// 	if resp.StatusCode != http.StatusOK {
-// 		b, _ := io.ReadAll(resp.Body)
-// 		return 0, fmt.Errorf("UpdateTeam: status %d, body %s", resp.StatusCode, string(b))
-// 	}
-
-// 	var updated SysdigTeam
-// 	if err := json.NewDecoder(resp.Body).Decode(&updated); err != nil {
-// 		return 0, err
-// 	}
-// 	return updated.ID, nil
-// }

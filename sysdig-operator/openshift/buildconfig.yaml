@@ -29,6 +29,6 @@ spec:
     type: Git
     git:
       uri: https://github.com/bcgov/platform-services-sysdig.git
-      ref: sysdig-new-operator
+      ref: main
     contextDir: sysdig-operator
   runPolicy: Serial

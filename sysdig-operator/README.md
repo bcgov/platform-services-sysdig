@@ -1,6 +1,8 @@
 # sysdig-operator
 sysdig-operator manages the configuration of user access to Sysdig based on information from the Registry.
 
+Create one `SysdigTeam` per `-tools` namespace. Edit its user list to add or remove members; the operator sends an invitation for new users. KLAB rejects a second resource in the same namespace. Update the original, or delete it before creating a replacement.
+
 ## Description
 
 ## Getting Started
@@ -26,12 +28,35 @@ go vet ./...
 go build -o bin/manager cmd/main.go
 ```
 
-You can run the manager locally if you want.  Log in to KLAB and then start the operator:
-```
-go run bin/manager
-```
+### Run the operator locally with `my-test.yaml`
 
-When you are ready to test your changes in OpenShift, commit your changes to a branch in the code repo.
+Copy `sysdigteam-sample.yml` to `my-test.yaml`, then set the test namespace, resource name, users, and roles. The operator may remove team members who are not listed.
+
+1. In [KLAB Argo CD](https://gitops.apps.klab.devops.gov.bc.ca), turn off auto-sync for `cluster-apps` and `sysdig-teams-operator`. Record the current replica count, then scale the [sysdig-operator-go deployment](https://console.apps.klab.devops.gov.bc.ca/k8s/ns/openshift-bcgov-sysdig-agent/deployments/sysdig-operator-go) to **0**. Wait for **0/0** ready.
+2. Confirm your context uses `api.klab.devops.gov.bc.ca` (not `api.silver.devops.gov.bc.ca`), then review the resources in the test namespace:
+
+   ```sh
+   oc config current-context
+   oc get sysdig-team -n c9ba43-tools
+   oc diff -f my-test.yaml
+   ```
+
+3. In this directory, start the operator:
+
+   ```sh
+   source .env
+   go run ./cmd/main.go --watch-namespace=c9ba43-tools --health-probe-bind-address=0
+   ```
+
+4. In another terminal, apply the test resource:
+
+   ```sh
+   oc apply -f my-test.yaml
+   oc get sysdig-team c9ba43-sysdigteam -n c9ba43-tools -o yaml
+   ```
+
+5. In Sysdig, check that `c9ba43-team-secure-zone` exists and `c9ba43-team-secure` selects it. Check what a non-admin team member can see before deployment; selecting a zone alone does not limit access.
+6. Press Ctrl+C to stop the local operator. Restore the deployment's previous replica count and the previous auto-sync settings.
 
 ## Automated Builds
 Builds are started automatically when changes are pushed to the repo or when a release is created.  A webhook in the repo makes a call to an OpenShift Pipeline called `operator-build` in the Silver `gitops-tools` namespace.
@@ -65,4 +90,3 @@ The creation of the release will start a PipelineRun in the Silver `gitops-tools
 
 ## Prepare Update
 Similar to the testing of a `latest` image, test the new versioned image.  After successful testing, prepare a CCM PR by updating the image tag in `roles/sysdig_teams_operator/defaults/main.yaml`.
-
